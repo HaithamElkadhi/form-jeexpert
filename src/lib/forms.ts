@@ -4,4 +4,7 @@ export interface FormListing {
 }
 
 // Hardcoded for this iteration — add new forms here as they launch.
-export const FORMS: FormListing[] = [{ name: "Italy application", slug: "italy" }];
+export const FORMS: FormListing[] = [
+  { name: "Italy application", slug: "italy" },
+  { name: "Visa requirement", slug: "visa" },
+];
