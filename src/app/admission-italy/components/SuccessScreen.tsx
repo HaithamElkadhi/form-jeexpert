@@ -1,4 +1,9 @@
-export default function SuccessScreen() {
+interface Props {
+  docsUploaded: number;
+  totalDocsExpected: number;
+}
+
+export default function SuccessScreen({ docsUploaded, totalDocsExpected }: Props) {
   return (
     <div className="flex flex-col items-center gap-4 py-10 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-italy-green/15 text-italy-green">
@@ -12,10 +17,11 @@ export default function SuccessScreen() {
           />
         </svg>
       </div>
-      <h2 className="text-xl font-semibold text-gray-900">Dossier received</h2>
+      <h2 className="text-xl font-semibold text-gray-900">Dossier submitted</h2>
       <p className="max-w-sm text-gray-600">
-        Thanks — your admission documents have been recorded. A JEExpert consultant will review
-        your file and follow up shortly.
+        {docsUploaded}/{totalDocsExpected} documents uploaded.
+        <br />
+        Our team will review your file and get back to you within 48 hours.
       </p>
     </div>
   );

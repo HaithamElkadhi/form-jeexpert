@@ -9,6 +9,7 @@ import {
   ProfileData,
   initialAdmissionData,
 } from "./types";
+import { useSubmitDossier } from "./hooks/useSubmitDossier";
 import StepBar from "./components/StepBar";
 import Step1Profile from "./components/Step1Profile";
 import Step2Academic from "./components/Step2Academic";
@@ -18,6 +19,13 @@ import SuccessScreen from "./components/SuccessScreen";
 export default function AdmissionForm() {
   const [step, setStep] = useState<AdmissionStep>(1);
   const [data, setData] = useState<AdmissionFormData>(initialAdmissionData);
+  const [successMeta, setSuccessMeta] = useState<{
+    docsUploaded: number;
+    totalDocsExpected: number;
+  } | null>(null);
+
+  const { submitDossier, submitting, uploadedCount, totalToUpload, error, setError } =
+    useSubmitDossier();
 
   function updateProfile<K extends keyof ProfileData>(key: K, value: ProfileData[K]) {
     setData((d) => ({ ...d, profile: { ...d.profile, [key]: value } }));
@@ -34,9 +42,16 @@ export default function AdmissionForm() {
     }));
   }
 
-  function handleSubmit() {
-    // Placeholder — API wiring TBD per spec
-    setStep("success");
+  async function handleSubmit() {
+    setError(null);
+    const result = await submitDossier(data);
+    if (result.success) {
+      setSuccessMeta({
+        docsUploaded: result.docsUploaded,
+        totalDocsExpected: result.totalDocsExpected,
+      });
+      setStep("success");
+    }
   }
 
   return (
@@ -80,9 +95,18 @@ export default function AdmissionForm() {
                 onDocumentChange={updateDocument}
                 onBack={() => setStep(2)}
                 onSubmit={handleSubmit}
+                submitting={submitting}
+                uploadedCount={uploadedCount}
+                totalToUpload={totalToUpload}
+                error={error}
               />
             )}
-            {step === "success" && <SuccessScreen />}
+            {step === "success" && successMeta && (
+              <SuccessScreen
+                docsUploaded={successMeta.docsUploaded}
+                totalDocsExpected={successMeta.totalDocsExpected}
+              />
+            )}
           </div>
         </div>
       </div>
