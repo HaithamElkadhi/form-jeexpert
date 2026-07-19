@@ -4,6 +4,9 @@ const BASE_ID = "appkqvTuc8F0AhWPp";
 const DOCUMENTS_TABLE_ID = "tbl4qg0oCDDMm6nfc";
 const PROSPECTS_TABLE_ID = "tblQPh56AAmCe1bTj";
 
+/** Airtable content upload API accepts at most 5 MB per file. */
+export const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+
 const FIELDS = {
   name: "flduCzBz6r4mbeyR6",
   prospect: "flddLbOxT5ONdCPWX",
@@ -196,32 +199,62 @@ export async function createAdmissionRecord(
   return recordId;
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function uploadAdmissionAttachment(
   recordId: string,
   file: File,
   filename: string
 ): Promise<void> {
+  if (file.size > MAX_ATTACHMENT_BYTES) {
+    const mb = (file.size / (1024 * 1024)).toFixed(1);
+    throw new Error(
+      `"${filename}" is ${mb} MB. Airtable only accepts files up to 5 MB — please compress it and try again.`
+    );
+  }
+
   const arrayBuffer = await file.arrayBuffer();
   const base64File = Buffer.from(arrayBuffer).toString("base64");
+  const body = JSON.stringify({
+    contentType: file.type || "application/octet-stream",
+    filename,
+    file: base64File,
+  });
 
-  const res = await fetch(
-    `https://content.airtable.com/v0/${BASE_ID}/${recordId}/${FIELDS.documents}/uploadAttachment`,
-    {
+  // content.airtable.com is the attachment host; api.airtable.com also accepts this path.
+  const url = `https://content.airtable.com/v0/${BASE_ID}/${recordId}/${FIELDS.documents}/uploadAttachment`;
+  const maxAttempts = 4;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${getApiKey()}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        contentType: file.type || "application/octet-stream",
-        filename,
-        file: base64File,
-      }),
-    }
-  );
+      body,
+    });
 
-  if (!res.ok) {
+    if (res.ok) return;
+
     const text = await res.text();
+
+    // Airtable requires waiting ~30s after a 429 before retrying.
+    if (res.status === 429 && attempt < maxAttempts) {
+      console.warn(
+        `Airtable rate limit on "${filename}" — waiting 30s (attempt ${attempt}/${maxAttempts})`
+      );
+      await sleep(30_000);
+      continue;
+    }
+
+    if (res.status >= 500 && attempt < maxAttempts) {
+      await sleep(1500 * attempt);
+      continue;
+    }
+
     throw new Error(`Attachment upload failed (${res.status}): ${text}`);
   }
 }

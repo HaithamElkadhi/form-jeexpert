@@ -56,6 +56,10 @@ export default function Step3Documents({
 
       <DocProgressBar uploaded={uploaded} total={docList.length} />
 
+      <p className="text-xs text-gray-500">
+        Each file must be under 5 MB (Airtable limit). Compress large PDFs before uploading.
+      </p>
+
       <div className="flex flex-col gap-3">
         {docList.map((def) => (
           <DocItem
@@ -69,9 +73,7 @@ export default function Step3Documents({
 
       {error && (
         <p className="rounded-lg border border-italy-terracotta/30 bg-italy-terracotta/5 px-3 py-2 text-sm text-italy-terracotta-dark">
-          {error.includes("WhatsApp")
-            ? error
-            : "Something went wrong. Please try again or contact us on WhatsApp."}
+          {error}
         </p>
       )}
 

@@ -24,6 +24,8 @@ function truncateName(name: string, max = 34): string {
   return `${name.slice(0, max - 1)}…`;
 }
 
+const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+
 function DocIcon({ uploaded }: { uploaded: boolean }) {
   if (uploaded) {
     return (
@@ -58,11 +60,16 @@ function DocIcon({ uploaded }: { uploaded: boolean }) {
 export default function DocItem({ def, entry, onChange }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const uploaded = Boolean(entry.file);
+  const tooLarge = Boolean(entry.file && entry.file.size > MAX_ATTACHMENT_BYTES);
 
   return (
     <div
       className={`flex flex-col gap-3 rounded-xl border p-4 transition-colors ${
-        uploaded ? "border-italy-green/40 bg-italy-green/5" : "border-gray-200 bg-white"
+        tooLarge
+          ? "border-italy-terracotta/40 bg-italy-terracotta/5"
+          : uploaded
+            ? "border-italy-green/40 bg-italy-green/5"
+            : "border-gray-200 bg-white"
       }`}
     >
       <div className="flex items-start gap-3">
@@ -73,6 +80,12 @@ export default function DocItem({ def, entry, onChange }: Props) {
           <p className={hintClass}>
             {uploaded && entry.file ? truncateName(entry.file.name) : def.hint || "PDF or image"}
           </p>
+          {tooLarge && entry.file && (
+            <p className="mt-1 text-xs text-italy-terracotta-dark">
+              File is {(entry.file.size / (1024 * 1024)).toFixed(1)} MB — max 5 MB. Please compress
+              and re-upload.
+            </p>
+          )}
         </div>
 
         {uploaded ? (
