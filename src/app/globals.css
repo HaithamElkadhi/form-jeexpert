@@ -52,3 +52,9 @@ body {
   stroke-dashoffset: 48;
   animation: draw-checkmark 350ms ease-out 500ms forwards;
 }
+
+@media print {
+  body {
+    background: white;
+  }
+}
