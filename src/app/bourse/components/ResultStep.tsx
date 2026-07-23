@@ -330,13 +330,22 @@ export default function ResultStep({
                   <div className="flex flex-col gap-1.5 text-sm text-gray-800">
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-medium text-gray-900">{doc.documentName}</p>
-                      <button
-                        type="button"
-                        onClick={() => setEditingId(doc.id)}
-                        className="shrink-0 text-xs font-medium text-italy-green print:hidden"
-                      >
-                        Modifier
-                      </button>
+                      <div className="flex shrink-0 gap-3 print:hidden">
+                        <button
+                          type="button"
+                          onClick={() => setEditingId(doc.id)}
+                          className="text-xs font-medium text-italy-green"
+                        >
+                          Modifier
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeDoc(doc.id)}
+                          className="text-xs font-medium text-italy-terracotta-dark"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
                     </div>
                     <p>
                       <span className="text-gray-500">Pour :</span> {doc.personLabel}

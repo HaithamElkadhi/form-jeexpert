@@ -1,7 +1,11 @@
 export default function WelcomeStep({ onNext }: { onNext: () => void }) {
   return (
     <div className="flex flex-col items-start gap-6 text-left">
-      <p className="text-sm font-medium text-italy-green">JEExpert</p>
+      <img
+        src="/logo.jpg"
+        alt="JEExpert"
+        className="h-12 w-12 object-contain"
+      />
       <h1 className="text-2xl font-semibold leading-snug text-gray-900">
         Checklist bourse régionale — Italie
       </h1>
