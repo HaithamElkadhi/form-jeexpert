@@ -1,17 +1,10 @@
 // Server-only helpers for writing to the Prospects table via the plain Airtable REST API.
 import "server-only";
+import { AIRTABLE, getAirtableApiKey } from "@/lib/airtable-config";
 
-const BASE_ID = "appkqvTuc8F0AhWPp";
-const PROSPECTS_TABLE_ID = "tblQPh56AAmCe1bTj";
-const CV_FIELD_NAME = "CV";
-
-function getApiKey(): string {
-  const key = process.env.AIRTABLE_API_KEY;
-  if (!key) {
-    throw new Error("AIRTABLE_API_KEY is not set");
-  }
-  return key;
-}
+const { baseId } = AIRTABLE;
+const prospects = AIRTABLE.tables.prospects;
+const F = prospects.fields;
 
 export interface ItalyProspectFields {
   firstName: string;
@@ -29,10 +22,10 @@ export interface ItalyProspectFields {
 }
 
 export async function createItalyProspect(data: ItalyProspectFields): Promise<string> {
-  const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${PROSPECTS_TABLE_ID}`, {
+  const res = await fetch(`https://api.airtable.com/v0/${baseId}/${prospects.id}`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${getApiKey()}`,
+      Authorization: `Bearer ${getAirtableApiKey()}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -40,19 +33,19 @@ export async function createItalyProspect(data: ItalyProspectFields): Promise<st
       records: [
         {
           fields: {
-            Name: data.firstName,
-            Surname: data.lastName,
-            Email: data.email,
-            Phone: data.phone,
-            "WhatsApp Number": data.phone,
-            Birthday: data.birthday,
-            "Full Address": data.address,
-            "How did you hear about us": data.howHeard,
-            "Last Academic Level": data.lastAcademicLevel,
-            "Last Diploma Obtained": data.lastDiploma,
-            Languages: data.languages,
-            "Entry Level": [data.entryLevel],
-            "Preferred Field of Study": data.preferredField,
+            [F.name]: data.firstName,
+            [F.surname]: data.lastName,
+            [F.email]: data.email,
+            [F.phone]: data.phone,
+            [F.whatsapp]: data.phone,
+            [F.birthday]: data.birthday,
+            [F.fullAddress]: data.address,
+            [F.howHeard]: data.howHeard,
+            [F.lastAcademicLevel]: data.lastAcademicLevel,
+            [F.lastDiploma]: data.lastDiploma,
+            [F.languages]: data.languages,
+            [F.entryLevel]: [data.entryLevel],
+            [F.preferredField]: data.preferredField,
           },
         },
       ],
@@ -80,11 +73,11 @@ export async function uploadCvAttachment(
   const base64File = Buffer.from(arrayBuffer).toString("base64");
 
   const res = await fetch(
-    `https://content.airtable.com/v0/${BASE_ID}/${recordId}/${encodeURIComponent(CV_FIELD_NAME)}/uploadAttachment`,
+    `https://content.airtable.com/v0/${baseId}/${recordId}/${encodeURIComponent(F.cv)}/uploadAttachment`,
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${getApiKey()}`,
+        Authorization: `Bearer ${getAirtableApiKey()}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

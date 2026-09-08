@@ -1,33 +1,13 @@
 import "server-only";
+import { AIRTABLE, getAirtableApiKey } from "@/lib/airtable-config";
+export { findProspectByEmail } from "@/lib/airtable-prospects";
 
-const BASE_ID = "appkqvTuc8F0AhWPp";
-const DOCUMENTS_TABLE_ID = "tbl4qg0oCDDMm6nfc";
-const PROSPECTS_TABLE_ID = "tblQPh56AAmCe1bTj";
+const { baseId } = AIRTABLE;
+const documents = AIRTABLE.tables.documents;
+const F = documents.fields;
 
 /** Airtable content upload API accepts at most 5 MB per file. */
 export const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
-
-const FIELDS = {
-  name: "flduCzBz6r4mbeyR6",
-  prospect: "flddLbOxT5ONdCPWX",
-  email: "fldvXXUGFdfSKRAjl",
-  submissionDate: "fld8DrbLEdxg0D4JE",
-  diplomaLevel: "fldo1JjqlT5kcO9eZ",
-  fieldOfStudy: "fldLz8dT90dTAEQed",
-  scoreFormat: "fldhfzzwpyesvUG2p",
-  scoreValue: "fldByb2VC7zf4PvLp",
-  gapYears: "flduV0meKEUlon4xz",
-  gapDescription: "fldp6UeYZT5Q9Tbe2",
-  gapDocTypes: "fldPj1ZezVOODe5EY",
-  passportExpiry: "fldZA6EiC0DH6h8G3",
-  languageCertName: "fldM0K2xgtpbanO1z",
-  documents: "fldlw19MuDmTwg7iy",
-  documentsStatus: "fldif76Ukh0xKQDoH",
-  dossierSubmitted: "fldHe22CIKSrHo9aK",
-  totalExpected: "fldjiRsKUUxt7Ra78",
-  submittedCount: "fldTT09a4RdZmRvOh",
-  prospectEmail: "fldWBOtlmuPIXdsep",
-} as const;
 
 const DOC_LABELS: Record<string, string> = {
   photo: "PassportPhoto",
@@ -50,18 +30,6 @@ const DOC_LABELS: Record<string, string> = {
   gap_training: "GapDoc_Training",
   gap_other: "GapDoc_Other",
 };
-
-function getApiKey(): string {
-  const key = process.env.AIRTABLE_API_KEY;
-  if (!key) {
-    throw new Error("AIRTABLE_API_KEY is not set");
-  }
-  return key;
-}
-
-function escapeFormulaValue(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-}
 
 function stripAccents(value: string): string {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -110,26 +78,6 @@ export function renameFile(
   return `${base}${ext}`;
 }
 
-export async function findProspectByEmail(email: string): Promise<string | null> {
-  const formula = `LOWER({${FIELDS.prospectEmail}}) = LOWER("${escapeFormulaValue(email.trim())}")`;
-  const url = new URL(`https://api.airtable.com/v0/${BASE_ID}/${PROSPECTS_TABLE_ID}`);
-  url.searchParams.set("filterByFormula", formula);
-  url.searchParams.set("maxRecords", "1");
-
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${getApiKey()}` },
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Prospect lookup failed (${res.status}): ${text}`);
-  }
-
-  const json = await res.json();
-  return json?.records?.[0]?.id ?? null;
-}
-
 export interface CreateAdmissionRecordInput {
   firstName: string;
   lastName: string;
@@ -154,30 +102,30 @@ export async function createAdmissionRecord(
   const gapDocTypes = input.gapDocTypes.filter((t) => t && t !== "No document");
 
   const fields: Record<string, unknown> = {
-    [FIELDS.name]: `${input.lastName.toUpperCase()}_${input.firstName}`,
-    [FIELDS.email]: input.email,
-    [FIELDS.submissionDate]: new Date().toISOString().split("T")[0],
-    [FIELDS.documentsStatus]: "Pending",
-    [FIELDS.dossierSubmitted]: true,
-    [FIELDS.totalExpected]: input.totalDocsExpected,
-    [FIELDS.submittedCount]: input.totalDocsUploaded,
+    [F.name]: `${input.lastName.toUpperCase()}_${input.firstName}`,
+    [F.email]: input.email,
+    [F.submissionDate]: new Date().toISOString().split("T")[0],
+    [F.documentsStatus]: "Pending",
+    [F.dossierSubmitted]: true,
+    [F.totalExpected]: input.totalDocsExpected,
+    [F.submittedCount]: input.totalDocsUploaded,
   };
 
-  if (input.diplomaLevel) fields[FIELDS.diplomaLevel] = input.diplomaLevel;
-  if (input.fieldOfStudy) fields[FIELDS.fieldOfStudy] = input.fieldOfStudy;
-  if (input.scoreFormat) fields[FIELDS.scoreFormat] = input.scoreFormat;
-  if (input.scoreValue) fields[FIELDS.scoreValue] = input.scoreValue;
-  if (Number.isFinite(input.gapYears)) fields[FIELDS.gapYears] = input.gapYears;
-  if (input.gapDescription) fields[FIELDS.gapDescription] = input.gapDescription;
-  if (gapDocTypes.length > 0) fields[FIELDS.gapDocTypes] = gapDocTypes;
-  if (input.passportExpiry) fields[FIELDS.passportExpiry] = input.passportExpiry;
-  if (input.languageCertName) fields[FIELDS.languageCertName] = input.languageCertName;
-  if (input.prospectRecordId) fields[FIELDS.prospect] = [input.prospectRecordId];
+  if (input.diplomaLevel) fields[F.diplomaLevel] = input.diplomaLevel;
+  if (input.fieldOfStudy) fields[F.fieldOfStudy] = input.fieldOfStudy;
+  if (input.scoreFormat) fields[F.scoreFormat] = input.scoreFormat;
+  if (input.scoreValue) fields[F.scoreValue] = input.scoreValue;
+  if (Number.isFinite(input.gapYears)) fields[F.gapYears] = input.gapYears;
+  if (input.gapDescription) fields[F.gapDescription] = input.gapDescription;
+  if (gapDocTypes.length > 0) fields[F.gapDocTypes] = gapDocTypes;
+  if (input.passportExpiry) fields[F.passportExpiry] = input.passportExpiry;
+  if (input.languageCertName) fields[F.languageCertName] = input.languageCertName;
+  if (input.prospectRecordId) fields[F.prospect] = [input.prospectRecordId];
 
-  const res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${DOCUMENTS_TABLE_ID}`, {
+  const res = await fetch(`https://api.airtable.com/v0/${baseId}/${documents.id}`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${getApiKey()}`,
+      Authorization: `Bearer ${getAirtableApiKey()}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -224,14 +172,14 @@ export async function uploadAdmissionAttachment(
   });
 
   // content.airtable.com is the attachment host; api.airtable.com also accepts this path.
-  const url = `https://content.airtable.com/v0/${BASE_ID}/${recordId}/${FIELDS.documents}/uploadAttachment`;
+  const url = `https://content.airtable.com/v0/${baseId}/${recordId}/${F.documents}/uploadAttachment`;
   const maxAttempts = 4;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const res = await fetch(url, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${getApiKey()}`,
+        Authorization: `Bearer ${getAirtableApiKey()}`,
         "Content-Type": "application/json",
       },
       body,
