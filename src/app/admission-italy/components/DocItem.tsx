@@ -2,16 +2,8 @@
 
 import { useRef } from "react";
 import type { DocDef } from "../buildDocList";
-import type { DocLanguage, DocumentEntry } from "../types";
-import { DOC_LANGUAGE_OPTIONS } from "../options";
-import {
-  hintClass,
-  inputClass,
-  labelClass,
-  pillActiveClass,
-  pillClass,
-  pillIdleClass,
-} from "./fieldStyles";
+import type { DocumentEntry } from "../types";
+import { hintClass, inputClass, labelClass } from "./fieldStyles";
 
 interface Props {
   def: DocDef;
@@ -78,12 +70,14 @@ export default function DocItem({ def, entry, onChange }: Props) {
         <div className="min-w-0 flex-1">
           <p className="font-medium text-gray-900">{def.name}</p>
           <p className={hintClass}>
-            {uploaded && entry.file ? truncateName(entry.file.name) : def.hint || "PDF or image"}
+            {uploaded && entry.file
+              ? truncateName(entry.file.name)
+              : def.hint || "PDF ou image"}
           </p>
           {tooLarge && entry.file && (
             <p className="mt-1 text-xs text-italy-terracotta-dark">
-              File is {(entry.file.size / (1024 * 1024)).toFixed(1)} MB — max 5 MB. Please compress
-              and re-upload.
+              Le fichier fait {(entry.file.size / (1024 * 1024)).toFixed(1)} Mo — max 5 Mo.
+              Merci de le compresser et de le renvoyer.
             </p>
           )}
         </div>
@@ -93,8 +87,8 @@ export default function DocItem({ def, entry, onChange }: Props) {
             type="button"
             onClick={() => inputRef.current?.click()}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-italy-green text-white"
-            aria-label={`${def.name} uploaded — replace`}
-            title="Replace file"
+            aria-label={`${def.name} téléversé — remplacer`}
+            title="Remplacer le fichier"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
               <path
@@ -112,7 +106,7 @@ export default function DocItem({ def, entry, onChange }: Props) {
             onClick={() => inputRef.current?.click()}
             className="shrink-0 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
           >
-            Upload
+            Téléverser
           </button>
         )}
 
@@ -132,7 +126,7 @@ export default function DocItem({ def, entry, onChange }: Props) {
       {def.extraField === "expiryDate" && (
         <div className="flex max-w-xs flex-col gap-1.5 pl-[3.25rem]">
           <label className={labelClass} htmlFor={`${def.id}-expiry`}>
-            Expiry date
+            Date d&apos;expiration
           </label>
           <input
             id={`${def.id}-expiry`}
@@ -147,7 +141,7 @@ export default function DocItem({ def, entry, onChange }: Props) {
       {def.extraField === "certName" && (
         <div className="flex flex-col gap-1.5 pl-[3.25rem]">
           <label className={labelClass} htmlFor={`${def.id}-cert`}>
-            Certificate name
+            Nom du certificat
           </label>
           <input
             id={`${def.id}-cert`}
@@ -157,29 +151,6 @@ export default function DocItem({ def, entry, onChange }: Props) {
             value={entry.certName ?? ""}
             onChange={(e) => onChange({ ...entry, certName: e.target.value })}
           />
-        </div>
-      )}
-
-      {def.showLanguage && (
-        <div className="flex flex-wrap gap-2 pl-[3.25rem]">
-          {DOC_LANGUAGE_OPTIONS.map((lang) => {
-            const selected = entry.language === lang;
-            return (
-              <button
-                key={lang}
-                type="button"
-                onClick={() =>
-                  onChange({
-                    ...entry,
-                    language: (selected ? "" : lang) as DocLanguage,
-                  })
-                }
-                className={`${pillClass} ${selected ? pillActiveClass : pillIdleClass}`}
-              >
-                {lang}
-              </button>
-            );
-          })}
         </div>
       )}
     </div>

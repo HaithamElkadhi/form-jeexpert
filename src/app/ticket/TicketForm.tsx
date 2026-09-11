@@ -145,7 +145,7 @@ export default function TicketForm() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium text-italy-green">JEExpert</p>
-              <h1 className="text-2xl font-semibold text-gray-900">Support ticket</h1>
+              <h1 className="text-2xl font-semibold text-gray-900">Ticket support</h1>
               <p className="text-sm text-gray-600">
                 Tell us what you need help with. We&apos;ll create a task for our team.
               </p>

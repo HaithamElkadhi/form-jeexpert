@@ -1,7 +1,6 @@
 import type {
   AcademicYear,
   BankOwnerKey,
-  DocumentStatus,
   FatherEmployment,
   HouseholdMemberKey,
   MotherEmployment,
@@ -41,42 +40,29 @@ export const PARENTS_STATUS_OPTIONS: { value: ParentsStatus; label: string }[] =
 export const FATHER_EMPLOYMENT_OPTIONS: { value: FatherEmployment; label: string }[] = [
   { value: "employee", label: "Salarié" },
   { value: "retired", label: "Retraité" },
-  { value: "self_employed", label: "Indépendant" },
-  { value: "merchant", label: "Commerçant" },
-  { value: "farmer", label: "Agriculteur" },
-  { value: "unemployed", label: "Chômeur" },
-  { value: "inactive", label: "Sans activité" },
+  { value: "self_employed", label: "Indépendant / Patente" },
+  { value: "inactive", label: "Sans activité / Chômeur" },
   { value: "deceased", label: "Décédé" },
 ];
 
 export const MOTHER_EMPLOYMENT_OPTIONS: { value: MotherEmployment; label: string }[] = [
   { value: "employee", label: "Salariée" },
   { value: "retired", label: "Retraitée" },
-  { value: "self_employed", label: "Indépendante" },
-  { value: "merchant", label: "Commerçante" },
-  { value: "farmer", label: "Agricultrice" },
-  { value: "unemployed", label: "Chômeuse" },
-  { value: "homemaker", label: "Femme au foyer" },
-  { value: "inactive", label: "Sans activité" },
+  { value: "self_employed", label: "Indépendante / Patente" },
+  { value: "inactive", label: "Sans activité / Femme au foyer / Chômeuse" },
   { value: "deceased", label: "Décédée" },
 ];
 
 export const SIBLING_SITUATION_OPTIONS: { value: SiblingSituation; label: string }[] = [
   { value: "student", label: "Étudiant" },
   { value: "employee", label: "Salarié" },
-  { value: "self_employed", label: "Indépendant" },
-  { value: "inactive", label: "Sans activité" },
-  { value: "retired", label: "Retraité" },
-  { value: "other", label: "Autre situation" },
+  { value: "scholarship", label: "Boursier" },
+  { value: "no_income", label: "Sans revenus" },
 ];
 
 export const STUDENT_INCOME_OPTIONS: { value: StudentIncomeOrigin; label: string }[] = [
   { value: "salary", label: "Salaire" },
-  { value: "self_employed", label: "Activité indépendante" },
-  { value: "pension", label: "Pension" },
   { value: "scholarship", label: "Bourse" },
-  { value: "foreign", label: "Revenu étranger" },
-  { value: "other", label: "Autre" },
 ];
 
 export const PROPERTY_OWNER_OPTIONS: { value: PropertyOwnerKey; label: string }[] = [
@@ -95,17 +81,6 @@ export const BANK_OWNER_OPTIONS: { value: BankOwnerKey; label: string }[] = [
   { value: "sibling_adult", label: "Frère ou sœur majeur" },
   { value: "other_adult", label: "Autre membre majeur" },
   { value: "none", label: "Personne" },
-];
-
-export const DOCUMENT_STATUS_OPTIONS: { value: DocumentStatus; label: string }[] = [
-  { value: "to_request", label: "À demander" },
-  { value: "requested", label: "Demandé" },
-  { value: "received", label: "Reçu" },
-  { value: "to_translate", label: "À traduire" },
-  { value: "to_apostille", label: "À apostiller" },
-  { value: "complete", label: "Complet" },
-  { value: "unavailable", label: "Document non disponible" },
-  { value: "needs_verification", label: "Vérification nécessaire" },
 ];
 
 export function labelOf<T extends string>(

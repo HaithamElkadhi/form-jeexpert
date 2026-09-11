@@ -1,7 +1,5 @@
-import { DOCUMENT_CATALOG, type DocumentCatalogEntry } from "../catalog";
+import { DOCUMENT_CATALOG } from "../catalog";
 import {
-  APOSTILLE_NOTE,
-  DEFAULT_PREPARATION,
   type AcademicYear,
   type BankAccountDetail,
   type BourseFormData,
@@ -11,22 +9,12 @@ import {
   type SiblingSituation,
   type StudentIncomeOrigin,
 } from "../types";
-import { formatYears, getEconomicYears } from "./years";
+import { getEconomicYears } from "./years";
 
 type DraftDoc = Omit<GeneratedDocument, "id"> & { dedupeKey: string };
 
 function uid(prefix: string): string {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function preparationFor(entry: DocumentCatalogEntry): string {
-  if (!entry.translationDefault && entry.apostilleDefault === "no") {
-    return "Original ou copie officielle, et scan PDF lisible.";
-  }
-  if (entry.apostilleDefault === "verify") {
-    return `${DEFAULT_PREPARATION} ${APOSTILLE_NOTE}`;
-  }
-  return DEFAULT_PREPARATION;
 }
 
 function makeDoc(opts: {
@@ -54,11 +42,8 @@ function makeDoc(opts: {
     personLabel: opts.personLabel,
     institution,
     years,
-    yearsLabel: formatYears(years),
-    instructions: preparationFor(entry),
     requiredInfo: opts.requiredInfoOverride ?? entry.requiredInfo ?? "",
     required: true,
-    status: "to_request",
     sourceRule: opts.sourceRule,
     note: "",
   };
@@ -122,11 +107,11 @@ function addBaseDocs(out: DraftDoc[]) {
   );
   out.push(
     makeDoc({
-      code: "TUN_FAMILY_RECORD",
+      code: "TUN_LIFE_CERTIFICATE",
       personId: "household",
       personLabel: "Foyer familial",
       years: [],
-      sourceRule: "base.family_record",
+      sourceRule: "base.life_certificate",
     })
   );
 }
@@ -137,6 +122,15 @@ function addParentsStatusDocs(data: BourseFormData, out: DraftDoc[]) {
       out.push(
         makeDoc({
           code: "TUN_SEPARATION_JUDGMENT",
+          personId: "parents",
+          personLabel: "Parents",
+          years: [],
+          sourceRule: "parents.status=separated",
+        })
+      );
+      out.push(
+        makeDoc({
+          code: "TUN_NON_APPEAL",
           personId: "parents",
           personLabel: "Parents",
           years: [],
@@ -203,15 +197,6 @@ function addParentsStatusDocs(data: BourseFormData, out: DraftDoc[]) {
           personLabel: "Mère",
           years: [],
           sourceRule: "parents.status=both_deceased",
-        })
-      );
-      out.push(
-        makeDoc({
-          code: "TUN_GUARDIANSHIP",
-          personId: "student",
-          personLabel: "Étudiant",
-          years: [],
-          sourceRule: "parents.status=both_deceased → tutelle si applicable",
         })
       );
       break;
@@ -298,14 +283,14 @@ function addEmploymentDocs(
     return;
   }
 
-  if (status === "self_employed" || status === "merchant") {
+  if (status === "self_employed") {
     out.push(
       makeDoc({
         code: "TUN_DECLARED_INCOME",
         personId,
         personLabel,
         years,
-        sourceRule: `${personId}.employment=${status}`,
+        sourceRule: `${personId}.employment=self_employed`,
       })
     );
     out.push(
@@ -314,74 +299,20 @@ function addEmploymentDocs(
         personId,
         personLabel,
         years: [],
-        sourceRule: `${personId}.employment=${status}`,
+        sourceRule: `${personId}.employment=self_employed`,
       })
     );
     return;
   }
 
-  if (status === "farmer") {
-    out.push(
-      makeDoc({
-        code: "TUN_DECLARED_INCOME",
-        personId,
-        personLabel,
-        years,
-        sourceRule: `${personId}.employment=farmer`,
-      })
-    );
-    out.push(
-      makeDoc({
-        code: "TUN_AGRICULTURAL_LAND",
-        personId,
-        personLabel,
-        years,
-        sourceRule: `${personId}.employment=farmer`,
-      })
-    );
-    out.push(
-      makeDoc({
-        code: "TUN_PROPERTY_CERTIFICATE",
-        personId,
-        personLabel,
-        years,
-        sourceRule: `${personId}.employment=farmer → terrains`,
-        nameOverride: "Actes ou certificats de propriété des terrains agricoles",
-      })
-    );
-    return;
-  }
-
-  if (status === "unemployed") {
+  if (status === "inactive") {
     out.push(
       makeDoc({
         code: "TUN_NON_IMPOSITION",
         personId,
         personLabel,
         years,
-        sourceRule: `${personId}.employment=unemployed`,
-      })
-    );
-    out.push(
-      makeDoc({
-        code: "TUN_UNEMPLOYMENT_CERT",
-        personId,
-        personLabel,
-        years: [],
-        sourceRule: `${personId}.employment=unemployed`,
-      })
-    );
-    return;
-  }
-
-  if (status === "inactive" || status === "homemaker") {
-    out.push(
-      makeDoc({
-        code: "TUN_NON_IMPOSITION",
-        personId,
-        personLabel,
-        years,
-        sourceRule: `${personId}.employment=${status}`,
+        sourceRule: `${personId}.employment=inactive`,
       })
     );
   }
@@ -424,28 +355,6 @@ function addStudentIncomeDocs(data: BourseFormData, years: number[], out: DraftD
       })
     );
   }
-  if (origins.has("self_employed")) {
-    out.push(
-      makeDoc({
-        code: "TUN_DECLARED_INCOME",
-        personId: "student",
-        personLabel: "Étudiant",
-        years,
-        sourceRule: "student.income=self_employed",
-      })
-    );
-  }
-  if (origins.has("pension")) {
-    out.push(
-      makeDoc({
-        code: "TUN_PENSION_BENEFIT",
-        personId: "student",
-        personLabel: "Étudiant",
-        years,
-        sourceRule: "student.income=pension",
-      })
-    );
-  }
   if (origins.has("scholarship")) {
     out.push(
       makeDoc({
@@ -454,28 +363,6 @@ function addStudentIncomeDocs(data: BourseFormData, years: number[], out: DraftD
         personLabel: "Étudiant",
         years,
         sourceRule: "student.income=scholarship",
-      })
-    );
-  }
-  if (origins.has("foreign")) {
-    out.push(
-      makeDoc({
-        code: "TUN_FOREIGN_INCOME",
-        personId: "student",
-        personLabel: "Étudiant",
-        years,
-        sourceRule: "student.income=foreign",
-      })
-    );
-  }
-  if (origins.has("other") || origins.size === 0) {
-    out.push(
-      makeDoc({
-        code: "TUN_OTHER_INCOME",
-        personId: "student",
-        personLabel: "Étudiant",
-        years,
-        sourceRule: "student.income=other",
       })
     );
   }
@@ -494,15 +381,6 @@ function addSiblingDocs(
       out.push(
         makeDoc({
           code: "TUN_SIBLING_STUDENT_PROOF",
-          personId,
-          personLabel,
-          years,
-          sourceRule: `${personId}.situation=student`,
-        })
-      );
-      out.push(
-        makeDoc({
-          code: "TUN_NON_IMPOSITION",
           personId,
           personLabel,
           years,
@@ -530,30 +408,18 @@ function addSiblingDocs(
         })
       );
       break;
-    case "self_employed":
+    case "scholarship":
       out.push(
         makeDoc({
-          code: "TUN_DECLARED_INCOME",
+          code: "TUN_SCHOLARSHIP_PROOF",
           personId,
           personLabel,
           years,
-          sourceRule: `${personId}.situation=self_employed`,
+          sourceRule: `${personId}.situation=scholarship`,
         })
       );
       break;
-    case "retired":
-      out.push(
-        makeDoc({
-          code: "TUN_PENSION_BENEFIT",
-          personId,
-          personLabel,
-          years,
-          sourceRule: `${personId}.situation=retired`,
-        })
-      );
-      break;
-    case "inactive":
-    case "other":
+    case "no_income":
     default:
       out.push(
         makeDoc({
@@ -679,9 +545,7 @@ function addBankDocsForAccount(
   const institutionName = account.institution.trim() || "Banque / Poste Tunisienne";
   const postal = isPostal(institutionName);
   const statementsCode = postal ? "TUN_POSTAL_STATEMENTS" : "TUN_BANK_STATEMENTS";
-  const where = postal
-    ? "Poste Tunisienne"
-    : `Agence bancaire (${institutionName}) ou espace client bancaire officiel`;
+  const where = postal ? "Poste Tunisienne" : `${institutionName} (Tunisie)`;
 
   out.push(
     makeDoc({
@@ -703,32 +567,6 @@ function addBankDocsForAccount(
       institutionOverride: where,
     })
   );
-  out.push(
-    makeDoc({
-      code: "TUN_AVERAGE_BALANCE",
-      personId: account.ownerId,
-      personLabel: ownerLabel,
-      years,
-      sourceRule: `bank.account=${account.id}`,
-      institutionOverride: where,
-    })
-  );
-
-  if (account.isClosed) {
-    out.push(
-      makeDoc({
-        code: "TUN_ACCOUNT_CLOSURE",
-        personId: account.ownerId,
-        personLabel: ownerLabel,
-        years: [],
-        sourceRule: `bank.account=${account.id}.closed`,
-        institutionOverride: where,
-        requiredInfoOverride: account.closingYear
-          ? `Compte fermé en ${account.closingYear}. Inclure les relevés du 1er janvier à la date de clôture et le solde à la date de clôture.`
-          : undefined,
-      })
-    );
-  }
 }
 
 function addBankDocs(data: BourseFormData, years: number[], out: DraftDoc[]) {

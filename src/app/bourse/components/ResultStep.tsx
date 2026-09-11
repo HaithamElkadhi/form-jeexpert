@@ -2,21 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { DOCUMENT_CATALOG } from "../catalog";
-import {
-  buildChecklistText,
-  buildSummary,
-  documentsToCsv,
-  statusLabel,
-} from "../engine/summary";
+import { buildChecklistText, buildSummary, documentsToCsv } from "../engine/summary";
 import { yearsMention } from "../engine/years";
-import { DOCUMENT_STATUS_OPTIONS } from "../options";
 import {
   DISCLAIMER,
-  DEFAULT_PREPARATION,
-  APOSTILLE_NOTE,
+  GENERAL_RULE,
   type AcademicYear,
   type BourseFormData,
-  type DocumentStatus,
   type GeneratedDocument,
 } from "../types";
 import { inputClass, labelClass, sectionTitleClass, warningClass } from "./fieldStyles";
@@ -47,16 +39,7 @@ export default function ResultStep({
   const yearsNote = academicYear ? yearsMention(academicYear) : "";
 
   const checklistText = useMemo(
-    () =>
-      buildChecklistText(
-        summary,
-        documents.map((d) => ({
-          ...d,
-          status: statusLabel(d.status),
-        })),
-        academicYear,
-        DISCLAIMER
-      ),
+    () => buildChecklistText(summary, documents, academicYear, DISCLAIMER),
     [summary, documents, academicYear]
   );
 
@@ -146,11 +129,8 @@ export default function ResultStep({
       personLabel: "À préciser",
       institution: entry.institution,
       years: [],
-      yearsLabel: "—",
-      instructions: `${DEFAULT_PREPARATION} ${APOSTILLE_NOTE}`,
       requiredInfo: "",
       required: false,
-      status: "needs_verification",
       sourceRule: "manual.add",
       note: "",
     };
@@ -184,6 +164,10 @@ export default function ResultStep({
           {yearsNote}
         </p>
       )}
+
+      <p className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 print:border print:bg-transparent">
+        {GENERAL_RULE}
+      </p>
 
       <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2 print:hidden">
@@ -259,23 +243,6 @@ export default function ResultStep({
                       />
                     </label>
                     <label className="flex flex-col gap-1">
-                      <span className={labelClass}>Années</span>
-                      <input
-                        className={inputClass}
-                        value={doc.yearsLabel}
-                        onChange={(e) => updateDoc(doc.id, { yearsLabel: e.target.value })}
-                      />
-                    </label>
-                    <label className="flex flex-col gap-1">
-                      <span className={labelClass}>Préparation</span>
-                      <textarea
-                        className={inputClass}
-                        rows={2}
-                        value={doc.instructions}
-                        onChange={(e) => updateDoc(doc.id, { instructions: e.target.value })}
-                      />
-                    </label>
-                    <label className="flex flex-col gap-1">
                       <span className={labelClass}>Note</span>
                       <textarea
                         className={inputClass}
@@ -283,22 +250,6 @@ export default function ResultStep({
                         value={doc.note}
                         onChange={(e) => updateDoc(doc.id, { note: e.target.value })}
                       />
-                    </label>
-                    <label className="flex flex-col gap-1">
-                      <span className={labelClass}>Statut</span>
-                      <select
-                        className={inputClass}
-                        value={doc.status}
-                        onChange={(e) =>
-                          updateDoc(doc.id, { status: e.target.value as DocumentStatus })
-                        }
-                      >
-                        {DOCUMENT_STATUS_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>
-                            {o.label}
-                          </option>
-                        ))}
-                      </select>
                     </label>
                     <label className="flex items-center gap-2 text-sm text-gray-700">
                       <input
@@ -352,9 +303,7 @@ export default function ResultStep({
                     </p>
                     <p>
                       <span className="text-gray-500">Où :</span> {doc.institution}
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Années :</span> {doc.yearsLabel}
+                      {!doc.required && " · optionnel"}
                     </p>
                     {doc.requiredInfo && (
                       <p>
@@ -362,13 +311,6 @@ export default function ResultStep({
                         {doc.requiredInfo}
                       </p>
                     )}
-                    <p>
-                      <span className="text-gray-500">Préparation :</span> {doc.instructions}
-                    </p>
-                    <p>
-                      <span className="text-gray-500">Statut :</span> {statusLabel(doc.status)}
-                      {!doc.required && " · optionnel"}
-                    </p>
                     {doc.note && (
                       <p>
                         <span className="text-gray-500">Note :</span> {doc.note}

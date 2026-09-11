@@ -17,11 +17,11 @@ export default function SuccessScreen({ docsUploaded, totalDocsExpected }: Props
           />
         </svg>
       </div>
-      <h2 className="text-xl font-semibold text-gray-900">Dossier submitted</h2>
+      <h2 className="text-xl font-semibold text-gray-900">Dossier envoyé</h2>
       <p className="max-w-sm text-gray-600">
-        {docsUploaded}/{totalDocsExpected} documents uploaded.
+        {docsUploaded}/{totalDocsExpected} documents téléversés.
         <br />
-        Our team will review your file and get back to you within 48 hours.
+        Notre équipe examinera votre dossier et vous recontactera sous 48 heures.
       </p>
     </div>
   );

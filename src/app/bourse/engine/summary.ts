@@ -11,7 +11,7 @@ import {
   STUDENT_INCOME_OPTIONS,
 } from "../options";
 import type { AcademicYear, BourseFormData } from "../types";
-import { formatYears, getEconomicYears, yearsMention } from "./years";
+import { getEconomicYears, yearsMention } from "./years";
 
 export function buildSummary(data: BourseFormData): string {
   const academicYear = data.academicYear as AcademicYear;
@@ -35,7 +35,6 @@ export function buildSummary(data: BourseFormData): string {
     (sum, a) => sum + (Number(a.accountCount) || 1),
     0
   );
-  const closedAccounts = data.bankAccounts.filter((a) => a.isClosed).length;
 
   const special = buildSpecialSituations(data);
 
@@ -79,7 +78,6 @@ export function buildSummary(data: BourseFormData): string {
     "COMPTES BANCAIRES",
     `Titulaires : ${bankHolders || "—"}`,
     `Nombre de comptes : ${data.bankOwners.includes("none") ? "0" : accountCount}`,
-    `Comptes fermés : ${closedAccounts}`,
     "",
     "ANNÉES À PRÉPARER",
     `Année ancienne : ${years?.yearOld ?? "—"}`,
@@ -143,10 +141,7 @@ export function buildChecklistText(
     documentName: string;
     personLabel: string;
     institution: string;
-    yearsLabel: string;
-    instructions: string;
     requiredInfo: string;
-    status: string;
     note: string;
   }[],
   academicYear: string,
@@ -157,9 +152,6 @@ export function buildChecklistText(
       `Document : ${doc.documentName}`,
       `Pour : ${doc.personLabel}`,
       `Où : ${doc.institution}`,
-      `Années : ${doc.yearsLabel}`,
-      `Préparation : ${doc.instructions}`,
-      `Statut : ${doc.status}`,
     ];
     if (doc.requiredInfo) lines.push(`Informations requises : ${doc.requiredInfo}`);
     if (doc.note) lines.push(`Note : ${doc.note}`);
@@ -184,9 +176,6 @@ export function documentsToCsv(
     documentName: string;
     personLabel: string;
     institution: string;
-    yearsLabel: string;
-    instructions: string;
-    status: string;
     required: boolean;
     note: string;
     sourceRule: string;
@@ -197,9 +186,6 @@ export function documentsToCsv(
     "document",
     "personne",
     "organisme",
-    "annees",
-    "preparation",
-    "statut",
     "obligatoire",
     "note",
     "regle",
@@ -210,9 +196,6 @@ export function documentsToCsv(
       d.documentName,
       d.personLabel,
       d.institution,
-      d.yearsLabel,
-      d.instructions,
-      d.status,
       d.required ? "oui" : "non",
       d.note,
       d.sourceRule,
@@ -226,22 +209,6 @@ function csvEscape(value: string): string {
   return value;
 }
 
-export function statusLabel(status: string): string {
-  const map: Record<string, string> = {
-    to_request: "À demander",
-    requested: "Demandé",
-    received: "Reçu",
-    to_translate: "À traduire",
-    to_apostille: "À apostiller",
-    complete: "Complet",
-    unavailable: "Document non disponible",
-    needs_verification: "Vérification nécessaire",
-  };
-  return map[status] ?? status;
-}
-
 export function catalogName(code: string): string {
   return DOCUMENT_CATALOG[code]?.name ?? code;
 }
-
-export { formatYears };

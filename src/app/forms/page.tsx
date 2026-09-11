@@ -5,9 +5,9 @@ import CopyLinkButton from "./CopyLinkButton";
 export default function FormsPage() {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-16">
-      <h1 className="text-2xl font-semibold">Forms</h1>
+      <h1 className="text-2xl font-semibold">Formulaires</h1>
       <p className="mt-1 text-sm text-gray-500">
-        All intake forms JEExpert currently uses.
+        Tous les formulaires d&apos;entrée utilisés par JEExpert.
       </p>
 
       <div className="mt-8 flex flex-col gap-3">

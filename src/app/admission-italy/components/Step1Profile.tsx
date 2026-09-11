@@ -24,12 +24,12 @@ export default function Step1Profile({ data, update, onNext }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <h2 className={sectionTitleClass}>Personal information</h2>
+      <h2 className={sectionTitleClass}>Informations personnelles</h2>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="firstName">
-            First name
+            Prénom
           </label>
           <input
             id="firstName"
@@ -41,7 +41,7 @@ export default function Step1Profile({ data, update, onNext }: Props) {
 
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="lastName">
-            Last name
+            Nom
           </label>
           <input
             id="lastName"
@@ -55,7 +55,7 @@ export default function Step1Profile({ data, update, onNext }: Props) {
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="email">
-            Email address
+            Adresse e-mail
           </label>
           <input
             id="email"
@@ -68,7 +68,7 @@ export default function Step1Profile({ data, update, onNext }: Props) {
 
         <div className="flex flex-col gap-1.5">
           <label className={labelClass} htmlFor="phone">
-            Phone (WhatsApp)
+            Téléphone (WhatsApp)
           </label>
           <input
             id="phone"
@@ -83,7 +83,7 @@ export default function Step1Profile({ data, update, onNext }: Props) {
 
       <div className="flex flex-col gap-1.5">
         <label className={labelClass} htmlFor="programType">
-          Target program type
+          Type de programme visé
         </label>
         <select
           id="programType"
@@ -92,7 +92,7 @@ export default function Step1Profile({ data, update, onNext }: Props) {
           onChange={(e) => update("programType", e.target.value as ProgramType)}
         >
           <option value="" disabled>
-            Select…
+            Sélectionner…
           </option>
           {PROGRAM_TYPE_OPTIONS.map((opt) => (
             <option key={opt} value={opt}>
@@ -104,7 +104,7 @@ export default function Step1Profile({ data, update, onNext }: Props) {
 
       <div className="mt-2 flex justify-end">
         <button type="submit" className={btnPrimaryClass}>
-          Continue
+          Continuer
         </button>
       </div>
     </form>

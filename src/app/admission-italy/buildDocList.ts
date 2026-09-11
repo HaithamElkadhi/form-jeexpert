@@ -4,156 +4,134 @@ export interface DocDef {
   id: string;
   name: string;
   hint: string;
-  showLanguage: boolean;
   extraField?: "expiryDate" | "certName";
 }
 
 const ALWAYS_DOCS: DocDef[] = [
   {
     id: "photo",
-    name: "Passport photo",
-    hint: "Recent, white background · JPG",
-    showLanguage: false,
+    name: "Photo d'identité",
+    hint: "Récente, fond blanc · JPG",
   },
   {
     id: "passport",
-    name: "Passport",
-    hint: "All pages · PDF or JPG",
-    showLanguage: false,
+    name: "Passeport",
+    hint: "Toutes les pages · PDF ou JPG",
     extraField: "expiryDate",
   },
   {
     id: "cv",
-    name: "CV / Résumé",
-    hint: "Europass format preferred · PDF",
-    showLanguage: true,
+    name: "CV",
+    hint: "Format Europass recommandé · PDF",
   },
   {
     id: "lang",
-    name: "Language certificate",
+    name: "Certificat de langue",
     hint: "",
-    showLanguage: true,
     extraField: "certName",
   },
   {
     id: "ddv",
     name: "Dichiarazione di Valore",
-    hint: "Issued by Italian consulate · PDF",
-    showLanguage: true,
+    hint: "Délivrée par le consulat italien · PDF",
   },
 ];
 
 const BAC_DOCS_BAC_ONLY: DocDef[] = [
   {
     id: "bac_dip",
-    name: "Baccalauréat diploma",
-    hint: "Official certificate · PDF",
-    showLanguage: false,
+    name: "Diplôme du Baccalauréat",
+    hint: "Certificat officiel · PDF",
   },
   {
     id: "bac_tr",
-    name: "Bac — transcript 3ème année secondaire",
-    hint: "Official grades · PDF",
-    showLanguage: false,
+    name: "Relevé de notes Bac — 3ème année secondaire",
+    hint: "Notes officielles · PDF",
   },
 ];
 
 const BAC_DOCS_HIGHER: DocDef[] = [
   {
     id: "bac_dip",
-    name: "Baccalauréat diploma",
-    hint: "Official certificate · PDF",
-    showLanguage: false,
+    name: "Diplôme du Baccalauréat",
+    hint: "Certificat officiel · PDF",
   },
   {
     id: "bac_tr",
-    name: "Bac — transcript",
-    hint: "Official grades · PDF",
-    showLanguage: false,
+    name: "Relevé de notes Bac",
+    hint: "Notes officielles · PDF",
   },
 ];
 
 const LICENCE_DOCS: DocDef[] = [
   {
     id: "lic_dip",
-    name: "Licence diploma",
-    hint: "Official certificate · PDF",
-    showLanguage: false,
+    name: "Diplôme de Licence",
+    hint: "Certificat officiel · PDF",
   },
   {
     id: "lic_tr1",
-    name: "Licence — transcript year 1",
-    hint: "Official grades · PDF",
-    showLanguage: false,
+    name: "Relevé de notes Licence — année 1",
+    hint: "Notes officielles · PDF",
   },
   {
     id: "lic_tr2",
-    name: "Licence — transcript year 2",
-    hint: "Official grades · PDF",
-    showLanguage: false,
+    name: "Relevé de notes Licence — année 2",
+    hint: "Notes officielles · PDF",
   },
   {
     id: "lic_tr3",
-    name: "Licence — transcript year 3",
-    hint: "Official grades · PDF",
-    showLanguage: false,
+    name: "Relevé de notes Licence — année 3",
+    hint: "Notes officielles · PDF",
   },
 ];
 
 const MASTER_DOCS: DocDef[] = [
   {
     id: "mas_dip",
-    name: "Master / Ingénieur diploma",
-    hint: "Official certificate · PDF",
-    showLanguage: false,
+    name: "Diplôme de Master / Ingénieur",
+    hint: "Certificat officiel · PDF",
   },
   {
     id: "mas_tr1",
-    name: "Master — transcript year 1",
-    hint: "Official grades · PDF",
-    showLanguage: false,
+    name: "Relevé de notes Master — année 1",
+    hint: "Notes officielles · PDF",
   },
   {
     id: "mas_tr2",
-    name: "Master — transcript year 2",
-    hint: "Official grades · PDF",
-    showLanguage: false,
+    name: "Relevé de notes Master — année 2",
+    hint: "Notes officielles · PDF",
   },
 ];
 
 const PHD_DOCS: DocDef[] = [
   {
     id: "phd_dip",
-    name: "PhD / Doctorat diploma",
-    hint: "Official certificate · PDF",
-    showLanguage: false,
+    name: "Diplôme de Doctorat / PhD",
+    hint: "Certificat officiel · PDF",
   },
 ];
 
 const GAP_DOC_MAP: Record<Exclude<GapDocType, "No document">, DocDef> = {
   "Internship / Stage": {
     id: "gap_stage",
-    name: "Internship / Stage certificate",
-    hint: "To justify your gap period · PDF",
-    showLanguage: true,
+    name: "Attestation de stage",
+    hint: "Pour justifier la période d'interruption · PDF",
   },
   "Work certificate": {
     id: "gap_work",
-    name: "Work certificate",
-    hint: "To justify your gap period · PDF",
-    showLanguage: true,
+    name: "Attestation de travail",
+    hint: "Pour justifier la période d'interruption · PDF",
   },
   "Training / Formation": {
     id: "gap_training",
-    name: "Training / Formation certificate",
-    hint: "To justify your gap period · PDF",
-    showLanguage: true,
+    name: "Attestation de formation",
+    hint: "Pour justifier la période d'interruption · PDF",
   },
   "Other document": {
     id: "gap_other",
-    name: "Supporting document (gap)",
-    hint: "To justify your gap period · PDF",
-    showLanguage: true,
+    name: "Document justificatif (interruption)",
+    hint: "Pour justifier la période d'interruption · PDF",
   },
 };
 

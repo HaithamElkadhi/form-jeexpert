@@ -13,13 +13,8 @@ export type DiplomaLevel =
   | "PhD"
   | "";
 
-export type ScoreFormat =
-  | "Mention (Très Bien / Bien / Assez Bien / Passable)"
-  | "Score /20"
-  | "Score /100"
-  | "GPA /4"
-  | "Pass / Fail"
-  | "";
+/** Always sent to Airtable as Score /20. */
+export const FIXED_SCORE_FORMAT = "Score /20" as const;
 
 export type GapDocType =
   | "Internship / Stage"
@@ -27,8 +22,6 @@ export type GapDocType =
   | "Training / Formation"
   | "Other document"
   | "No document";
-
-export type DocLanguage = "EN" | "FR" | "AR" | "Other" | "";
 
 export interface ProfileData {
   firstName: string;
@@ -41,7 +34,6 @@ export interface ProfileData {
 export interface AcademicData {
   diplomaLevel: DiplomaLevel;
   fieldOfStudy: string;
-  scoreFormat: ScoreFormat;
   scoreValue: string;
   yearObtained: string;
   yearsExperience: string;
@@ -52,7 +44,6 @@ export interface AcademicData {
 
 export interface DocumentEntry {
   file: File | null;
-  language: DocLanguage;
   expiryDate?: string;
   certName?: string;
 }
@@ -76,7 +67,6 @@ export const initialAdmissionData: AdmissionFormData = {
   academic: {
     diplomaLevel: "",
     fieldOfStudy: "",
-    scoreFormat: "",
     scoreValue: "",
     yearObtained: "",
     yearsExperience: "0",

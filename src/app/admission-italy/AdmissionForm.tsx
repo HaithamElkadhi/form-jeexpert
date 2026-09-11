@@ -60,9 +60,9 @@ export default function AdmissionForm() {
         <header className="mb-8">
           <p className="text-sm font-semibold tracking-wide text-italy-green">JEExpert</p>
           <h1 className="mt-1 text-2xl font-semibold text-gray-900 sm:text-3xl">
-            Italy admission
+            Dossier d&apos;admission — Italie
           </h1>
-          <p className="mt-1 text-gray-500">Dossier builder</p>
+          <p className="mt-1 text-gray-500">Constructeur de dossier</p>
         </header>
 
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">

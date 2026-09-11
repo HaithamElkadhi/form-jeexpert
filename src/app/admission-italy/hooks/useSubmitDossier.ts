@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { buildDocList } from "../buildDocList";
-import type { AdmissionFormData } from "../types";
+import { FIXED_SCORE_FORMAT, type AdmissionFormData } from "../types";
 
 /** Must match Airtable content upload limit (see admission-airtable.ts). */
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
@@ -54,7 +54,7 @@ export function useSubmitDossier() {
         const file = documents[def.id]?.file;
         if (file && file.size > MAX_ATTACHMENT_BYTES) {
           throw new Error(
-            `"${def.name}" is ${formatMb(file.size)} MB. Airtable only accepts files up to 5 MB — please compress it and try again.`
+            `"${def.name}" fait ${formatMb(file.size)} Mo. Airtable n'accepte que les fichiers jusqu'à 5 Mo — merci de le compresser et de réessayer.`
           );
         }
       }
@@ -71,7 +71,7 @@ export function useSubmitDossier() {
           academic: {
             diplomaLevel: academic.diplomaLevel,
             fieldOfStudy: academic.fieldOfStudy,
-            scoreFormat: academic.scoreFormat,
+            scoreFormat: FIXED_SCORE_FORMAT,
             scoreValue: academic.scoreValue,
             gapYears: academic.gapYears,
             gapDescription: academic.gapDescription,
@@ -87,7 +87,7 @@ export function useSubmitDossier() {
       if (!createRes.ok || !createJson.success || !createJson.recordId) {
         throw new Error(
           createJson.error ||
-            "Something went wrong. Please try again or contact us on WhatsApp."
+            "Une erreur s'est produite. Réessayez ou contactez-nous sur WhatsApp."
         );
       }
 
@@ -119,7 +119,7 @@ export function useSubmitDossier() {
             typeof uploadJson.error === "string" ? uploadJson.error : "";
           throw new Error(
             detail ||
-              `Failed while uploading "${def.name}" (${docsUploaded}/${filesToUpload.length} done). Please try again or contact us on WhatsApp.`
+              `Échec lors de l'envoi de « ${def.name} » (${docsUploaded}/${filesToUpload.length} terminés). Réessayez ou contactez-nous sur WhatsApp.`
           );
         }
 
@@ -139,7 +139,7 @@ export function useSubmitDossier() {
       const message =
         err instanceof Error
           ? err.message
-          : "Something went wrong. Please try again or contact us on WhatsApp.";
+          : "Une erreur s'est produite. Réessayez ou contactez-nous sur WhatsApp.";
       console.error("[submitDossier]", message);
       setError(message);
       return { success: false, error: message };

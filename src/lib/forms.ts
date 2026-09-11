@@ -5,9 +5,8 @@ export interface FormListing {
 
 // Hardcoded for this iteration — add new forms here as they launch.
 export const FORMS: FormListing[] = [
-  { name: "Italy application", slug: "italy" },
-  { name: "Visa requirement", slug: "visa" },
-  { name: "Italy admission", slug: "admission-italy" },
-  { name: "Bourse régionale Italie", slug: "bourse" },
-  { name: "Support ticket", slug: "ticket" },
+  { name: "Profil étudiant — Italie", slug: "italy" },
+  { name: "Dossier d'admission — Italie", slug: "admission-italy" },
+  { name: "Checklist bourse régionale — Italie", slug: "bourse" },
+  { name: "Ticket support", slug: "ticket" },
 ];

@@ -23,7 +23,7 @@ interface Props {
   error: string | null;
 }
 
-const EMPTY_ENTRY: DocumentEntry = { file: null, language: "" };
+const EMPTY_ENTRY: DocumentEntry = { file: null };
 
 export default function Step3Documents({
   academic,
@@ -46,9 +46,9 @@ export default function Step3Documents({
 
   const submitLabel = submitting
     ? totalToUpload > 0
-      ? `Uploading… (${uploadedCount}/${totalToUpload})`
-      : "Uploading…"
-    : "Submit dossier";
+      ? `Envoi… (${uploadedCount}/${totalToUpload})`
+      : "Envoi…"
+    : "Soumettre le dossier";
 
   return (
     <div className="flex flex-col gap-5">
@@ -57,7 +57,8 @@ export default function Step3Documents({
       <DocProgressBar uploaded={uploaded} total={docList.length} />
 
       <p className="text-xs text-gray-500">
-        Each file must be under 5 MB (Airtable limit). Compress large PDFs before uploading.
+        Chaque fichier doit faire moins de 5 Mo (limite Airtable). Compressez les PDF volumineux
+        avant de les envoyer.
       </p>
 
       <div className="flex flex-col gap-3">
@@ -84,7 +85,7 @@ export default function Step3Documents({
           disabled={submitting}
           className={`${btnSecondaryClass} disabled:cursor-not-allowed disabled:opacity-50`}
         >
-          Back
+          Retour
         </button>
         <button
           type="button"

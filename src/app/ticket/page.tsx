@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import TicketForm from "./TicketForm";
 
 export const metadata: Metadata = {
-  title: "Support ticket — JEExpert Forms",
+  title: "Ticket support — JEExpert Forms",
 };
 
 export default function TicketPage() {

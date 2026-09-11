@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildDocList } from "@/app/admission-italy/buildDocList";
-import type { DiplomaLevel, GapDocType } from "@/app/admission-italy/types";
+import {
+  FIXED_SCORE_FORMAT,
+  type DiplomaLevel,
+  type GapDocType,
+} from "@/app/admission-italy/types";
 import {
   createAdmissionRecord,
   findProspectByEmail,
@@ -39,7 +43,7 @@ export async function POST(req: NextRequest) {
 
   if (!firstName || !lastName || !email) {
     return NextResponse.json(
-      { error: "First name, last name, and email are required." },
+      { error: "Le prénom, le nom et l'e-mail sont obligatoires." },
       { status: 400 }
     );
   }
@@ -60,7 +64,7 @@ export async function POST(req: NextRequest) {
       email,
       diplomaLevel: academic.diplomaLevel ?? "",
       fieldOfStudy: academic.fieldOfStudy ?? "",
-      scoreFormat: academic.scoreFormat ?? "",
+      scoreFormat: academic.scoreFormat || FIXED_SCORE_FORMAT,
       scoreValue: academic.scoreValue ?? "",
       gapYears,
       gapDescription: academic.gapDescription ?? "",

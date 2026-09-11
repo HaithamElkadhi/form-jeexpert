@@ -41,46 +41,50 @@ export default function GapBox({
     }
   }
 
+  const yearLabel = gapYears === 1 ? "an" : "ans";
+
   return (
     <div className={warningBoxClass}>
       <h3 className="font-medium text-italy-terracotta-dark">
-        Gap of {gapYears} year{gapYears === 1 ? "" : "s"} detected — please explain
+        Interruption de {gapYears} {yearLabel} détectée — merci d&apos;expliquer
       </h3>
 
       <div className="flex flex-col gap-1.5">
         <label className={labelClass} htmlFor="gapDescription">
-          What did you do during this period?
+          Qu&apos;avez-vous fait pendant cette période ?
         </label>
         <textarea
           id="gapDescription"
           rows={4}
           className={inputClass}
-          placeholder="Describe your activities: personal projects, volunteering, travel, family reasons, job search…"
+          placeholder="Décrivez vos activités : projets personnels, bénévolat, voyages, raisons familiales, recherche d'emploi…"
           value={gapDescription}
           onChange={(e) => onDescriptionChange(e.target.value)}
         />
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className={labelClass}>Documents to justify this period (select all that apply)</p>
+        <p className={labelClass}>
+          Documents justifiant cette période (sélectionnez tout ce qui s&apos;applique)
+        </p>
         <div className="flex flex-wrap gap-2">
-          {GAP_DOC_TYPE_OPTIONS.map((type) => {
-            const selected = gapDocTypes.includes(type);
+          {GAP_DOC_TYPE_OPTIONS.map((opt) => {
+            const selected = gapDocTypes.includes(opt.value);
             return (
               <button
-                key={type}
+                key={opt.value}
                 type="button"
-                onClick={() => toggleType(type)}
+                onClick={() => toggleType(opt.value)}
                 className={`${pillClass} ${selected ? pillActiveClass : pillIdleClass}`}
               >
-                {type}
+                {opt.label}
               </button>
             );
           })}
         </div>
         <p className={hintClass}>
-          Selecting &quot;No document&quot; clears other choices. Each selected type adds an upload
-          slot in step 3.
+          Sélectionner « Aucun document » efface les autres choix. Chaque type sélectionné ajoute
+          un emplacement d&apos;upload à l&apos;étape 3.
         </p>
       </div>
     </div>

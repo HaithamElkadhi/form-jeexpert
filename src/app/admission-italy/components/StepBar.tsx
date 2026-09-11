@@ -1,14 +1,14 @@
 "use client";
 
 const STEPS = [
-  { n: 1, label: "Personal" },
-  { n: 2, label: "Academic" },
+  { n: 1, label: "Personnel" },
+  { n: 2, label: "Académique" },
   { n: 3, label: "Documents" },
 ] as const;
 
 export default function StepBar({ current }: { current: 1 | 2 | 3 }) {
   return (
-    <nav aria-label="Form steps" className="flex items-center gap-2">
+    <nav aria-label="Étapes du formulaire" className="flex items-center gap-2">
       {STEPS.map((s, i) => {
         const done = current > s.n;
         const active = current === s.n;

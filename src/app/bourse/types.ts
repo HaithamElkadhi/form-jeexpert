@@ -22,9 +22,6 @@ export type FatherEmployment =
   | "employee"
   | "retired"
   | "self_employed"
-  | "merchant"
-  | "farmer"
-  | "unemployed"
   | "inactive"
   | "deceased";
 
@@ -32,28 +29,12 @@ export type MotherEmployment =
   | "employee"
   | "retired"
   | "self_employed"
-  | "merchant"
-  | "farmer"
-  | "unemployed"
-  | "homemaker"
   | "inactive"
   | "deceased";
 
-export type SiblingSituation =
-  | "student"
-  | "employee"
-  | "self_employed"
-  | "inactive"
-  | "retired"
-  | "other";
+export type SiblingSituation = "student" | "employee" | "scholarship" | "no_income";
 
-export type StudentIncomeOrigin =
-  | "salary"
-  | "self_employed"
-  | "pension"
-  | "scholarship"
-  | "foreign"
-  | "other";
+export type StudentIncomeOrigin = "salary" | "scholarship";
 
 export type PropertyOwnerKey =
   | "father"
@@ -73,16 +54,6 @@ export type BankOwnerKey =
 
 export type PropertyRegistered = "yes" | "no" | "unknown";
 
-export type DocumentStatus =
-  | "to_request"
-  | "requested"
-  | "received"
-  | "to_translate"
-  | "to_apostille"
-  | "complete"
-  | "unavailable"
-  | "needs_verification";
-
 export interface AdultSibling {
   id: string;
   situation: SiblingSituation;
@@ -97,9 +68,6 @@ export interface BankAccountDetail {
   id: string;
   ownerId: Exclude<BankOwnerKey, "none">;
   institution: string;
-  isClosed: boolean;
-  openingYear: string;
-  closingYear: string;
   accountCount: string;
 }
 
@@ -176,20 +144,14 @@ export interface GeneratedDocument {
   personLabel: string;
   institution: string;
   years: number[];
-  yearsLabel: string;
-  instructions: string;
   requiredInfo: string;
   required: boolean;
-  status: DocumentStatus;
   sourceRule: string;
   note: string;
 }
 
-export const DEFAULT_PREPARATION =
-  "Préparez l’original, une traduction complète en italien, l’apostille lorsque l’organisme régional l’exige, deux copies couleur et un scan PDF lisible.";
-
-export const APOSTILLE_NOTE =
-  "Apostille à prévoir, sauf confirmation contraire de l’organisme régional ou du CAF conventionné.";
+export const GENERAL_RULE =
+  "Sauf passeport, codice fiscale et lettre d’admission : original + traduction italienne jurée + apostille (si exigée) + scan PDF.";
 
 export const DISCLAIMER =
   "Cette checklist est générée à partir des informations fournies par l’étudiant. Les exigences peuvent varier selon la région italienne, l’université, le CAF conventionné et le bando annuel. JeExpert doit vérifier la liste avant validation définitive.";
