@@ -71,6 +71,24 @@ export const AIRTABLE = {
         ticketRef: "fldREmahsaEC8gl87",
       },
     },
+
+    bourseDocuments: {
+      id: "tbl7qGYTAKarKrGNn",
+      fields: {
+        /** Primary field in Airtable (date) — no separate Name column */
+        submissionDate: "fldRcaQssXLUDlmVe",
+        prospect: "fldqnqmR3GsouwBux",
+        householdMembers: "fld8gNl1RQ9QLBt0L",
+        dossierStatus: "fldUz9ib1shIzw214",
+        birthCertificates: "fldFEqqFT5aDClPVu",
+        familyBooklet: "fldFMro4OqzaN2OK4",
+        propertyDocs: "fldLDhgKHVdfGRHin",
+        nonPropertyDocs: "fldiBfgBJJh6alXT3",
+        balanceAttestation: "fld1F6Qoa4e5Y8Xsx",
+        taxDeclarations: "fldQw9wQfvM9dYKFx",
+        otherDocuments: "fldv0Ls0B3j3KwArG",
+      },
+    },
   },
 } as const;
 
