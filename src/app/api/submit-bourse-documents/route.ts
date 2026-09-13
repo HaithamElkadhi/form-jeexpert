@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { airtableNetworkErrorMessage } from "@/lib/airtable-fetch";
 import {
   createBourseDocumentsRecord,
+  createMinimalProspect,
   findProspectByEmail,
 } from "@/lib/bourse-documents-airtable";
 
@@ -31,7 +33,23 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const prospectRecordId = await findProspectByEmail(email);
+    let prospectRecordId: string | null = null;
+    let prospectCreated = false;
+
+    // Link Prospect when possible, but don't block dossier creation on network blips.
+    try {
+      prospectRecordId = await findProspectByEmail(email);
+      if (!prospectRecordId) {
+        prospectRecordId = await createMinimalProspect({ firstName, lastName, email });
+        prospectCreated = true;
+      }
+    } catch (prospectErr) {
+      console.warn(
+        "[submit-bourse-documents] Prospect link skipped:",
+        airtableNetworkErrorMessage(prospectErr)
+      );
+    }
+
     const recordId = await createBourseDocumentsRecord({
       householdMembersText,
       prospectRecordId,
@@ -40,17 +58,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       recordId,
-      prospectFound: Boolean(prospectRecordId),
+      prospectFound: Boolean(prospectRecordId) && !prospectCreated,
+      prospectCreated,
+      prospectLinked: Boolean(prospectRecordId),
     });
   } catch (err) {
     console.error(err);
     return NextResponse.json(
       {
         success: false,
-        error:
-          err instanceof Error
-            ? err.message
-            : "Impossible de créer le dossier. Réessayez.",
+        error: airtableNetworkErrorMessage(err),
       },
       { status: 502 }
     );

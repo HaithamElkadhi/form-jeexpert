@@ -16,9 +16,9 @@ export const AIRTABLE = {
         // Lookup / shared (field IDs)
         email: "fldWBOtlmuPIXdsep",
 
-        // Italy form writes (field names — replace with fld… when available)
-        name: "Name",
-        surname: "Surname",
+        // Italy form writes (prefer field IDs)
+        name: "fldrjpZMHxXReuVBK",
+        surname: "fldrlBOVl9Rd2wIff",
         phone: "Phone",
         whatsapp: "WhatsApp Number",
         birthday: "Birthday",

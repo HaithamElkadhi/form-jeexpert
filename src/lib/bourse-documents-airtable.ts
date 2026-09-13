@@ -1,6 +1,7 @@
 import "server-only";
 import { AIRTABLE, getAirtableApiKey } from "@/lib/airtable-config";
-export { findProspectByEmail } from "@/lib/airtable-prospects";
+import { airtableFetch } from "@/lib/airtable-fetch";
+export { findProspectByEmail, createMinimalProspect } from "@/lib/airtable-prospects";
 
 const { baseId } = AIRTABLE;
 const table = AIRTABLE.tables.bourseDocuments;
@@ -48,7 +49,7 @@ export async function createBourseDocumentsRecord(
     fields[F.prospect] = [input.prospectRecordId];
   }
 
-  const res = await fetch(`https://api.airtable.com/v0/${baseId}/${table.id}`, {
+  const res = await airtableFetch(`https://api.airtable.com/v0/${baseId}/${table.id}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${getAirtableApiKey()}`,
@@ -107,14 +108,27 @@ export async function uploadBourseAttachment(
   const maxAttempts = 4;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${getAirtableApiKey()}`,
-        "Content-Type": "application/json",
-      },
-      body,
-    });
+    let res: Response;
+    try {
+      res = await airtableFetch(
+        url,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${getAirtableApiKey()}`,
+            "Content-Type": "application/json",
+          },
+          body,
+        },
+        2
+      );
+    } catch (err) {
+      if (attempt < maxAttempts) {
+        await sleep(1500 * attempt);
+        continue;
+      }
+      throw err;
+    }
 
     if (res.ok) return;
 

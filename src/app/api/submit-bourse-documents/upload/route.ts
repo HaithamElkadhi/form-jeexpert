@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { airtableNetworkErrorMessage } from "@/lib/airtable-fetch";
 import {
   BOURSE_UPLOAD_FIELD_IDS,
   MAX_ATTACHMENT_BYTES,
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, filename });
   } catch (err) {
     console.error(err);
-    const message = err instanceof Error ? err.message : "File upload failed";
+    const message = airtableNetworkErrorMessage(err);
     const status = message.includes("5 MB") ? 400 : 502;
     return NextResponse.json({ success: false, error: message }, { status });
   }
