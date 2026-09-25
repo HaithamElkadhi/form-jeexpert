@@ -3,7 +3,6 @@
  * Add new tables or fields here when scaling forms.
  *
  * Prefer field IDs (`fld…`) over names — they survive column renames.
- * Prospects Italy writes still use names where IDs are not recorded yet.
  */
 
 export const AIRTABLE = {
@@ -13,23 +12,57 @@ export const AIRTABLE = {
     prospects: {
       id: "tblQPh56AAmCe1bTj",
       fields: {
-        // Lookup / shared (field IDs)
+        // Shared
         email: "fldWBOtlmuPIXdsep",
 
-        // Italy form writes (prefer field IDs)
+        // Personal info
         name: "fldrjpZMHxXReuVBK",
         surname: "fldrlBOVl9Rd2wIff",
-        phone: "Phone",
-        whatsapp: "WhatsApp Number",
-        birthday: "Birthday",
-        fullAddress: "Full Address",
-        howHeard: "How did you hear about us",
-        lastAcademicLevel: "Last Academic Level",
-        lastDiploma: "Last Diploma Obtained",
-        languages: "Languages",
-        entryLevel: "Entry Level",
-        preferredField: "Preferred Field of Study",
-        cv: "CV",
+        phone: "fldx6RMeRYPWC9BV3",
+        whatsapp: "fldHIXLt8b7LaLf9s",
+        birthday: "fldUiSJwz4U9FDNJH",
+        fullAddress: "fldP5aCtktb3nrpPI",
+        nationality: "fldmG4KgxlZIWe5yC",
+        howHeard: "fldLV49Le4NdHQ3zX",
+
+        // Academic profile
+        currentStatus: "fldvzq0VUdgCELdRf",
+        academicLevel: "fldZT8Pius01jN6Rc",
+        lastAcademicLevel: "fldGeykWH8oKFr03M",
+        lastDiploma: "fldW153lo9sB8qUSH",
+        obtainedDiplomas: "fld1P0dI80wYuEXe1",
+        fieldOfPreviousStudies: "fldLL6037ymaLuT5m",
+        yearOfGraduation: "fldsot30LGlll8oss",
+        currentOccupation: "fldqTBJ1GLInyIHws",
+        // Academic records description (long text, all diplomas combined)
+        academicRecordDescription: "fldgGMhu1oFDV8YbF",
+
+        // Language profile
+        languages: "fld2HHy6pgpQJmUNv",
+        // Language records description (long text, all languages combined)
+        languageRecordDescription: "flduGDlcArGZHrWOA",
+
+        // Study preferences
+        entryLevel: "fldC85ZK7TfLJc6N2",
+        targetDegreeLevel: "fldiIXhVLGlOYfNEX",
+        intendedIntake: "fldWgAo9MCS0PQ0Qb",
+        preferredField: "fldtEe8tIFgc9bS04",
+        primaryFieldOfStudy: "fldIYBuTapsL6oHnz",
+        alternativeField: "fldW1lu6RJLB6cUT1",
+        programLanguages: "fldGVRtZ7aFnr5KM0",
+        cityPreferenceType: "fldUitTkCZNanMcID",
+        preferredCityUniversity: "fldFXkXX9HgLVI1bm",
+
+        // Financial
+        financingPlan: "fldLPAvvz286zcxz2",
+        financialGuarantor: "fldKXmKZb2TVgDfNE",
+        blockedAccount: "fldjhqSyAPCnznYAs",
+        supportFromAbroad: "fldqst8OaoMhb9xTJ",
+        abroadSupportDetails: "fld0i1plGROk8Dq1X",
+        availableBudget: "fldLQp9TJZTDadP6L",
+
+        // CV
+        cv: "fldenMwZiItEpYz4L",
       },
     },
 
@@ -67,7 +100,6 @@ export const AIRTABLE = {
         description: "fld6KhpKoJl0KqWCK",
         taskStatus: "fldD9zlILdlxUHFNh",
         linkedProspect: "fldjSWmfcfKoSdJzS",
-        /** Formula: TSK-YYYYMMDD-XXXXX — read-only */
         ticketRef: "fldREmahsaEC8gl87",
       },
     },
@@ -75,7 +107,6 @@ export const AIRTABLE = {
     bourseDocuments: {
       id: "tbl7qGYTAKarKrGNn",
       fields: {
-        /** Primary field in Airtable (date) — no separate Name column */
         submissionDate: "fldRcaQssXLUDlmVe",
         prospect: "fldqnqmR3GsouwBux",
         householdMembers: "fld8gNl1RQ9QLBt0L",

@@ -21,9 +21,9 @@ export default function SuccessScreen() {
           d="M14.1 27.2l7.1 7.2 16.7-16.8"
         />
       </svg>
-      <h2 className="text-xl font-semibold text-gray-900">You&apos;re all set</h2>
+      <h2 className="text-xl font-semibold text-gray-900">C&apos;est envoyé</h2>
       <p className="max-w-xs text-gray-600">
-        A consultant will reach out to schedule your first meeting.
+        Un consultant vous recontactera pour planifier votre premier rendez-vous.
       </p>
     </div>
   );

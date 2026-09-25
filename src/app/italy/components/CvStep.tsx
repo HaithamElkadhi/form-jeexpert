@@ -20,7 +20,7 @@ export default function CvStep({ data, update, onBack, onSubmit, submitting, err
   function acceptFile(file: File | undefined) {
     if (!file) return;
     if (file.type !== "application/pdf") {
-      setFileError("Please upload a PDF file.");
+      setFileError("Veuillez envoyer un fichier PDF.");
       return;
     }
     setFileError(null);
@@ -33,17 +33,12 @@ export default function CvStep({ data, update, onBack, onSubmit, submitting, err
     acceptFile(e.dataTransfer.files?.[0]);
   }
 
-  function handleSubmitClick() {
-    if (!data.cvFile) {
-      setFileError("Please attach your CV to continue.");
-      return;
-    }
-    onSubmit();
-  }
-
   return (
     <div className="flex flex-col gap-5">
-      <h2 className="text-xl font-semibold text-gray-900">Your CV</h2>
+      <div className="flex flex-col gap-1">
+        <h2 className="text-xl font-semibold text-gray-900">Votre CV</h2>
+        <p className="text-sm text-gray-500">Facultatif. Vous pouvez envoyer le formulaire sans CV.</p>
+      </div>
 
       <div
         onClick={() => inputRef.current?.click()}
@@ -68,8 +63,8 @@ export default function CvStep({ data, update, onBack, onSubmit, submitting, err
           <p className="font-medium text-italy-green">{data.cvFile.name}</p>
         ) : (
           <>
-            <p className="font-medium text-italy-green">Drop your CV here</p>
-            <p className="text-sm text-gray-500">or click to browse — PDF only</p>
+            <p className="font-medium text-italy-green">Déposez votre CV ici</p>
+            <p className="text-sm text-gray-500">ou cliquez pour parcourir — PDF uniquement</p>
           </>
         )}
       </div>
@@ -83,15 +78,15 @@ export default function CvStep({ data, update, onBack, onSubmit, submitting, err
           disabled={submitting}
           className="rounded-lg px-4 py-3 font-medium text-gray-500 transition-colors hover:text-gray-700 disabled:opacity-50"
         >
-          Back
+          Retour
         </button>
         <button
           type="button"
-          onClick={handleSubmitClick}
+          onClick={onSubmit}
           disabled={submitting}
           className="flex-1 rounded-lg bg-italy-terracotta px-6 py-3 font-medium text-white transition-colors hover:bg-italy-terracotta-dark disabled:opacity-60"
         >
-          {submitting ? "Submitting…" : "Submit"}
+          {submitting ? "Envoi…" : "Envoyer"}
         </button>
       </div>
     </div>

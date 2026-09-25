@@ -9,19 +9,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid form submission" }, { status: 400 });
   }
 
-  const firstName = String(formData.get("firstName") ?? "").trim();
-  const lastName = String(formData.get("lastName") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
-  const phone = String(formData.get("phone") ?? "").trim();
-  const birthday = String(formData.get("birthday") ?? "").trim();
-  const address = String(formData.get("address") ?? "").trim();
-  const howHeard = String(formData.get("howHeard") ?? "").trim();
-  const lastAcademicLevel = String(formData.get("lastAcademicLevel") ?? "").trim();
-  const lastDiploma = String(formData.get("lastDiploma") ?? "").trim();
-  const languagesRaw = String(formData.get("languages") ?? "").trim();
-  const entryLevel = String(formData.get("entryLevel") ?? "").trim();
-  const preferredField = String(formData.get("preferredField") ?? "").trim();
-  const cvFile = formData.get("cvFile");
+  const g = (key: string) => String(formData.get(key) ?? "").trim();
+
+  const firstName = g("firstName");
+  const lastName = g("lastName");
+  const email = g("email");
+  const phone = g("phone");
+  const birthday = g("birthday");
+  const address = g("address");
+  const nationality = g("nationality");
+  const howHeard = g("howHeard");
+
+  const currentStatus = g("currentStatus");
+  const academicLevel = g("academicLevel");
+  const obtainedDiploma = g("obtainedDiploma");
+  const academicRecords = g("academicRecords");
+  const fieldOfPreviousStudies = g("fieldOfPreviousStudies");
+  const yearOfGraduation = g("yearOfGraduation");
+  const currentOccupation = g("currentOccupation");
+  const languagesRaw = g("languages");
+  const languageRecords = g("languageRecords");
+
+  const targetDegreeLevel = g("targetDegreeLevel");
+  const intendedIntake = g("intendedIntake");
+
+  const cvEntry = formData.get("cvFile");
+  const cvFile = cvEntry instanceof File && cvEntry.size > 0 ? cvEntry : null;
 
   if (
     !firstName ||
@@ -30,21 +43,20 @@ export async function POST(req: NextRequest) {
     !phone ||
     !birthday ||
     !address ||
+    !nationality ||
     !howHeard ||
-    !lastAcademicLevel ||
-    !lastDiploma ||
+    !currentStatus ||
+    !academicLevel ||
     !languagesRaw ||
-    !entryLevel ||
-    !preferredField ||
-    !(cvFile instanceof File) ||
-    cvFile.size === 0
+    !targetDegreeLevel ||
+    !intendedIntake
   ) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    return NextResponse.json({ error: "Champs obligatoires manquants." }, { status: 400 });
   }
 
   const languages = languagesRaw
     .split(",")
-    .map((s) => s.trim().toUpperCase())
+    .map((s) => s.trim())
     .filter(Boolean);
 
   let recordId: string;
@@ -56,26 +68,42 @@ export async function POST(req: NextRequest) {
       phone,
       birthday,
       address,
+      nationality,
       howHeard,
-      lastAcademicLevel,
-      lastDiploma,
+      currentStatus,
+      academicLevel,
+      obtainedDiploma,
+      academicRecords,
+      fieldOfPreviousStudies,
+      yearOfGraduation,
+      currentOccupation,
       languages,
-      entryLevel,
-      preferredField,
+      languageRecords,
+      targetDegreeLevel,
+      intendedIntake,
     });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Could not save your application. Please try again." }, { status: 502 });
-  }
-
-  try {
-    await uploadCvAttachment(recordId, cvFile);
-  } catch (err) {
-    console.error(err);
     return NextResponse.json(
-      { error: "Your application was saved but the CV upload failed. Please contact us.", recordId },
+      { error: "Impossible d'enregistrer votre candidature. Réessayez." },
       { status: 502 }
     );
+  }
+
+  if (cvFile) {
+    try {
+      await uploadCvAttachment(recordId, cvFile);
+    } catch (err) {
+      console.error(err);
+      return NextResponse.json(
+        {
+          error:
+            "Votre candidature a été enregistrée, mais l'envoi du CV a échoué. Contactez-nous.",
+          recordId,
+        },
+        { status: 502 }
+      );
+    }
   }
 
   return NextResponse.json({ ok: true, recordId });

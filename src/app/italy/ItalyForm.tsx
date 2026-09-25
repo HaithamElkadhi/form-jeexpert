@@ -10,20 +10,36 @@ import AcademicStep from "./components/AcademicStep";
 import ProjectStep from "./components/ProjectStep";
 import CvStep from "./components/CvStep";
 import SuccessScreen from "./components/SuccessScreen";
+import { dialCodeFor } from "./phoneCountries";
 
 const initialData: ItalyFormData = {
+  // About you
   firstName: "",
   lastName: "",
   email: "",
+  phoneCountry: "TN",
   phone: "",
   birthday: "",
   address: "",
+  nationality: "",
   howHeard: "",
-  lastAcademicLevel: "",
-  lastDiploma: "",
-  languages: "",
-  entryLevel: "",
-  preferredField: "",
+
+  // Academic profile
+  currentStatus: "",
+  academicLevel: "",
+  obtainedDiploma: [],
+  academicRecords: [],
+  fieldOfPreviousStudies: "",
+  yearOfGraduation: "",
+  currentOccupation: "",
+  languages: [],
+  languageRecords: [],
+
+  // Study preferences
+  targetDegreeLevel: "",
+  intendedIntake: "",
+
+  // CV
   cvFile: null,
 };
 
@@ -41,7 +57,6 @@ export default function ItalyForm() {
   }
 
   async function handleSubmit() {
-    if (!data.cvFile) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -49,25 +64,35 @@ export default function ItalyForm() {
       fd.append("firstName", data.firstName);
       fd.append("lastName", data.lastName);
       fd.append("email", data.email);
-      fd.append("phone", data.phone);
+      fd.append("phone", `${dialCodeFor(data.phoneCountry)} ${data.phone}`.trim());
       fd.append("birthday", data.birthday);
       fd.append("address", data.address);
+      fd.append("nationality", data.nationality);
       fd.append("howHeard", data.howHeard);
-      fd.append("lastAcademicLevel", data.lastAcademicLevel);
-      fd.append("lastDiploma", data.lastDiploma);
-      fd.append("languages", data.languages);
-      fd.append("entryLevel", data.entryLevel);
-      fd.append("preferredField", data.preferredField);
-      fd.append("cvFile", data.cvFile);
+
+      fd.append("currentStatus", data.currentStatus);
+      fd.append("academicLevel", data.academicLevel);
+      fd.append("obtainedDiploma", data.obtainedDiploma.join(", "));
+      fd.append("academicRecords", JSON.stringify(data.academicRecords));
+      fd.append("fieldOfPreviousStudies", data.fieldOfPreviousStudies);
+      fd.append("yearOfGraduation", data.yearOfGraduation);
+      fd.append("currentOccupation", data.currentOccupation);
+      fd.append("languages", data.languages.join(", "));
+      fd.append("languageRecords", JSON.stringify(data.languageRecords));
+
+      fd.append("targetDegreeLevel", data.targetDegreeLevel);
+      fd.append("intendedIntake", data.intendedIntake);
+
+      if (data.cvFile) fd.append("cvFile", data.cvFile);
 
       const res = await fetch("/api/submit-italy", { method: "POST", body: fd });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        throw new Error(json.error || "Something went wrong. Please try again.");
+        throw new Error(json.error || "Une erreur s'est produite. Réessayez.");
       }
       setStep(5);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : "Une erreur s'est produite. Réessayez.");
     } finally {
       setSubmitting(false);
     }

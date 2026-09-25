@@ -7,21 +7,114 @@ const prospects = AIRTABLE.tables.prospects;
 const F = prospects.fields;
 
 export interface ItalyProspectFields {
+  // Personal info
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
   birthday: string;
   address: string;
+  nationality: string;
   howHeard: string;
-  lastAcademicLevel: string;
-  lastDiploma: string;
+
+  // Academic profile
+  currentStatus: string;
+  academicLevel: string;
+  obtainedDiploma: string;
+  academicRecords: string;
+  fieldOfPreviousStudies: string;
+  yearOfGraduation: string;
+  currentOccupation: string;
   languages: string[];
-  entryLevel: string;
-  preferredField: string;
+  languageRecords: string;
+
+  // Study preferences
+  targetDegreeLevel: string;
+  intendedIntake: string;
+}
+
+function buildAcademicDescription(json: string): string {
+  try {
+    const records = JSON.parse(json) as { diploma: string; score: string; maxScore: string }[];
+    if (!Array.isArray(records) || records.length === 0) return "";
+    return records
+      .filter((r) => r.diploma)
+      .map((r) => {
+        const score = r.score ? `${r.score}/${r.maxScore || 20}` : "—";
+        const gpa =
+          r.score && r.maxScore
+            ? ` (GPA: ${((Number(r.score) / Number(r.maxScore)) * 4).toFixed(2)})`
+            : "";
+        return `${r.diploma}: ${score}${gpa}`;
+      })
+      .join("\n");
+  } catch {
+    return "";
+  }
+}
+
+function buildLanguageDescription(json: string): string {
+  try {
+    const records = JSON.parse(json) as { language: string; level: string; certificate: string }[];
+    if (!Array.isArray(records) || records.length === 0) return "";
+    return records
+      .filter((r) => r.language)
+      .map((r) => {
+        const level = r.level || "—";
+        const cert = r.certificate && r.certificate !== "None" ? ` (${r.certificate})` : "";
+        return `${r.language}: ${level}${cert}`;
+      })
+      .join("\n");
+  } catch {
+    return "";
+  }
 }
 
 export async function createItalyProspect(data: ItalyProspectFields): Promise<string> {
+  const academicDescription = buildAcademicDescription(data.academicRecords);
+  const languageDescription = buildLanguageDescription(data.languageRecords);
+
+  const fields: Record<string, unknown> = {
+    [F.name]: data.firstName,
+    [F.surname]: data.lastName,
+    [F.email]: data.email,
+    [F.phone]: data.phone,
+    [F.whatsapp]: data.phone,
+    [F.birthday]: data.birthday || undefined,
+    [F.fullAddress]: data.address,
+    [F.nationality]: data.nationality ? [data.nationality] : undefined,
+    [F.howHeard]: data.howHeard,
+
+    [F.currentStatus]: data.currentStatus || undefined,
+    [F.academicLevel]: data.academicLevel || undefined,
+    [F.lastAcademicLevel]: data.academicLevel || undefined,
+    [F.obtainedDiplomas]: data.obtainedDiploma
+      ? data.obtainedDiploma.split(",").map((s) => s.trim()).filter(Boolean)
+      : undefined,
+    [F.fieldOfPreviousStudies]: data.fieldOfPreviousStudies || undefined,
+    [F.yearOfGraduation]: data.yearOfGraduation ? Number(data.yearOfGraduation) || undefined : undefined,
+    [F.currentOccupation]: data.currentOccupation || undefined,
+    [F.languages]: data.languages.length > 0 ? data.languages : undefined,
+
+    [F.targetDegreeLevel]: data.targetDegreeLevel || undefined,
+    [F.entryLevel]: data.targetDegreeLevel ? [data.targetDegreeLevel] : undefined,
+    [F.intendedIntake]: data.intendedIntake ? [data.intendedIntake] : undefined,
+  };
+
+  // Academic records description
+  if (academicDescription) {
+    fields[F.academicRecordDescription] = academicDescription;
+  }
+
+  if (languageDescription) {
+    fields[F.languageRecordDescription] = languageDescription;
+  }
+
+  // Strip undefined values
+  const cleanFields = Object.fromEntries(
+    Object.entries(fields).filter(([, v]) => v !== undefined)
+  );
+
   const res = await fetch(`https://api.airtable.com/v0/${baseId}/${prospects.id}`, {
     method: "POST",
     headers: {
@@ -30,25 +123,7 @@ export async function createItalyProspect(data: ItalyProspectFields): Promise<st
     },
     body: JSON.stringify({
       typecast: true,
-      records: [
-        {
-          fields: {
-            [F.name]: data.firstName,
-            [F.surname]: data.lastName,
-            [F.email]: data.email,
-            [F.phone]: data.phone,
-            [F.whatsapp]: data.phone,
-            [F.birthday]: data.birthday,
-            [F.fullAddress]: data.address,
-            [F.howHeard]: data.howHeard,
-            [F.lastAcademicLevel]: data.lastAcademicLevel,
-            [F.lastDiploma]: data.lastDiploma,
-            [F.languages]: data.languages,
-            [F.entryLevel]: [data.entryLevel],
-            [F.preferredField]: data.preferredField,
-          },
-        },
-      ],
+      records: [{ fields: cleanFields }],
     }),
   });
 

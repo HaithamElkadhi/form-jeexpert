@@ -90,7 +90,7 @@ export default function AdmissionForm() {
             )}
             {step === 3 && (
               <Step3Documents
-                academic={data.academic}
+                data={data}
                 documents={data.documents}
                 onDocumentChange={updateDocument}
                 onBack={() => setStep(2)}

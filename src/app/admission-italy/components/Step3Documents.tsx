@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { buildDocList } from "../buildDocList";
-import type { AcademicData, DocumentEntry, DocumentsState } from "../types";
+import { downloadAdmissionPdf } from "../buildAdmissionPdf";
+import type { AcademicData, AdmissionFormData, DocumentEntry, DocumentsState } from "../types";
 import DocItem from "./DocItem";
 import DocProgressBar from "./DocProgressBar";
 import {
@@ -12,7 +13,7 @@ import {
 } from "./fieldStyles";
 
 interface Props {
-  academic: AcademicData;
+  data: AdmissionFormData;
   documents: DocumentsState;
   onDocumentChange: (id: string, entry: DocumentEntry) => void;
   onBack: () => void;
@@ -26,7 +27,7 @@ interface Props {
 const EMPTY_ENTRY: DocumentEntry = { file: null };
 
 export default function Step3Documents({
-  academic,
+  data,
   documents,
   onDocumentChange,
   onBack,
@@ -36,6 +37,8 @@ export default function Step3Documents({
   totalToUpload,
   error,
 }: Props) {
+  const [downloaded, setDownloaded] = useState(false);
+  const academic: AcademicData = data.academic;
   const hasGap = academic.gapYears > 1;
   const docList = useMemo(
     () => buildDocList(academic.diplomaLevel, hasGap, academic.gapDocTypes),
@@ -50,6 +53,11 @@ export default function Step3Documents({
       : "Envoi…"
     : "Soumettre le dossier";
 
+  function handleDownload() {
+    downloadAdmissionPdf(data);
+    setDownloaded(true);
+  }
+
   return (
     <div className="flex flex-col gap-5">
       <h2 className={sectionTitleClass}>Documents</h2>
@@ -58,7 +66,8 @@ export default function Step3Documents({
 
       <p className="text-xs text-gray-500">
         Chaque fichier doit faire moins de 5 Mo (limite Airtable). Compressez les PDF volumineux
-        avant de les envoyer.
+        avant de les envoyer. Le bouton PDF télécharge le résumé de l&apos;étudiant et la liste des
+        documents requis.
       </p>
 
       <div className="flex flex-col gap-3">
@@ -78,7 +87,13 @@ export default function Step3Documents({
         </p>
       )}
 
-      <div className="mt-2 flex items-center gap-3">
+      {downloaded && (
+        <p className="rounded-lg border border-italy-green/30 bg-italy-green/5 px-3 py-2 text-sm text-italy-green-dark">
+          PDF téléchargé.
+        </p>
+      )}
+
+      <div className="mt-2 flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={onBack}
@@ -86,6 +101,14 @@ export default function Step3Documents({
           className={`${btnSecondaryClass} disabled:cursor-not-allowed disabled:opacity-50`}
         >
           Retour
+        </button>
+        <button
+          type="button"
+          onClick={handleDownload}
+          disabled={submitting}
+          className={`${btnSecondaryClass} disabled:cursor-not-allowed disabled:opacity-50`}
+        >
+          Télécharger le PDF
         </button>
         <button
           type="button"
