@@ -3,17 +3,12 @@
 import { useRef } from "react";
 import type { DocDef } from "../buildDocList";
 import type { DocumentEntry } from "../types";
-import { hintClass, inputClass, labelClass } from "./fieldStyles";
+import { inputClass, labelClass } from "./fieldStyles";
 
 interface Props {
   def: DocDef;
   entry: DocumentEntry;
   onChange: (entry: DocumentEntry) => void;
-}
-
-function truncateName(name: string, max = 34): string {
-  if (name.length <= max) return name;
-  return `${name.slice(0, max - 1)}…`;
 }
 
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
@@ -69,11 +64,6 @@ export default function DocItem({ def, entry, onChange }: Props) {
 
         <div className="min-w-0 flex-1">
           <p className="font-medium text-gray-900">{def.name}</p>
-          <p className={hintClass}>
-            {uploaded && entry.file
-              ? truncateName(entry.file.name)
-              : def.hint || "PDF ou image"}
-          </p>
           {tooLarge && entry.file && (
             <p className="mt-1 text-xs text-italy-terracotta-dark">
               Le fichier fait {(entry.file.size / (1024 * 1024)).toFixed(1)} Mo — max 5 Mo.

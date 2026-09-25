@@ -31,15 +31,18 @@ export interface ProfileData {
   programType: ProgramType;
 }
 
+export type StudyLanguage = "Anglais" | "Italien" | "";
+
 export interface AcademicData {
   diplomaLevel: DiplomaLevel;
   fieldOfStudy: string;
   scoreValue: string;
   yearObtained: string;
-  yearsExperience: string;
+  studyLanguage: StudyLanguage;
+  hasGap: boolean;
   gapYears: number;
-  gapDescription: string;
   gapDocTypes: GapDocType[];
+  gapOtherDocLabel: string;
 }
 
 export interface DocumentEntry {
@@ -69,12 +72,13 @@ export const initialAdmissionData: AdmissionFormData = {
     fieldOfStudy: "",
     scoreValue: "",
     yearObtained: "",
-    yearsExperience: "0",
+    studyLanguage: "",
+    hasGap: false,
     gapYears: 0,
-    gapDescription: "",
     gapDocTypes: [],
+    gapOtherDocLabel: "",
   },
   documents: {},
 };
 
-export type AdmissionStep = 1 | 2 | 3 | "success";
+export type AdmissionStep = 1 | 2 | 3 | 4 | "success";

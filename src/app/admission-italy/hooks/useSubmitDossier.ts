@@ -42,8 +42,8 @@ export function useSubmitDossier() {
     setUploadedCount(0);
 
     const { profile, academic, documents } = formState;
-    const hasGap = academic.gapYears > 1;
-    const docList = buildDocList(academic.diplomaLevel, hasGap, academic.gapDocTypes);
+    const hasGap = academic.hasGap && academic.gapYears > 0;
+    const docList = buildDocList(academic.diplomaLevel, hasGap, academic.gapDocTypes, academic.gapOtherDocLabel, academic.studyLanguage);
     const filesToUpload = docList.filter((d) => documents[d.id]?.file);
 
     setTotalToUpload(filesToUpload.length);
@@ -74,7 +74,6 @@ export function useSubmitDossier() {
             scoreFormat: FIXED_SCORE_FORMAT,
             scoreValue: academic.scoreValue,
             gapYears: academic.gapYears,
-            gapDescription: academic.gapDescription,
             gapDocTypes: academic.gapDocTypes,
           },
           passportExpiry: documents.passport?.expiryDate || null,

@@ -14,6 +14,7 @@ import StepBar from "./components/StepBar";
 import Step1Profile from "./components/Step1Profile";
 import Step2Academic from "./components/Step2Academic";
 import Step3Documents from "./components/Step3Documents";
+import Step4Upload from "./components/Step4Upload";
 import SuccessScreen from "./components/SuccessScreen";
 
 export default function AdmissionForm() {
@@ -57,15 +58,23 @@ export default function AdmissionForm() {
   return (
     <main className="flex flex-1 justify-center px-4 py-10 sm:py-14">
       <div className="w-full max-w-2xl">
-        <header className="mb-8">
-          <p className="text-sm font-semibold tracking-wide text-italy-green">JEExpert</p>
-          <h1 className="mt-1 text-2xl font-semibold text-gray-900 sm:text-3xl">
-            Dossier d&apos;admission — Italie
-          </h1>
-          <p className="mt-1 text-gray-500">Constructeur de dossier</p>
+        {/* Header */}
+        <header className="mb-6 flex items-center justify-between border-b border-gray-200 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0D3272]">
+              <span className="text-sm font-black text-[#F5A623]">J</span>
+            </div>
+            <div>
+              <span className="text-base font-bold text-[#0D3272]">Jee</span><span className="text-base font-bold text-[#F5A623]">expert</span>
+            </div>
+          </div>
+          <div className="text-right">
+            <h1 className="text-base font-semibold text-gray-900">Dossier d&apos;admission — Italie</h1>
+            <p className="text-xs text-gray-400">Votre avenir, notre expertise</p>
+          </div>
         </header>
 
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
           {step !== "success" && (
             <div className="border-b border-gray-100 px-6 pt-6 pb-4 sm:px-8">
               <StepBar current={step} />
@@ -91,9 +100,15 @@ export default function AdmissionForm() {
             {step === 3 && (
               <Step3Documents
                 data={data}
-                documents={data.documents}
-                onDocumentChange={updateDocument}
                 onBack={() => setStep(2)}
+                onNext={() => setStep(4)}
+              />
+            )}
+            {step === 4 && (
+              <Step4Upload
+                data={data}
+                onDocumentChange={updateDocument}
+                onBack={() => setStep(3)}
                 onSubmit={handleSubmit}
                 submitting={submitting}
                 uploadedCount={uploadedCount}

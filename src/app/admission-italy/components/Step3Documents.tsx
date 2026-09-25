@@ -1,91 +1,82 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { buildDocList } from "../buildDocList";
+import { buildDocList, type DocDef } from "../buildDocList";
 import { downloadAdmissionPdf } from "../buildAdmissionPdf";
-import type { AcademicData, AdmissionFormData, DocumentEntry, DocumentsState } from "../types";
-import DocItem from "./DocItem";
-import DocProgressBar from "./DocProgressBar";
-import {
-  btnPrimaryClass,
-  btnSecondaryClass,
-  sectionTitleClass,
-} from "./fieldStyles";
+import type { AcademicData, AdmissionFormData } from "../types";
+import { btnPrimaryClass, btnSecondaryClass, sectionTitleClass } from "./fieldStyles";
 
 interface Props {
   data: AdmissionFormData;
-  documents: DocumentsState;
-  onDocumentChange: (id: string, entry: DocumentEntry) => void;
   onBack: () => void;
-  onSubmit: () => void;
-  submitting: boolean;
-  uploadedCount: number;
-  totalToUpload: number;
-  error: string | null;
+  onNext: () => void;
 }
 
-const EMPTY_ENTRY: DocumentEntry = { file: null };
+const SECTIONS: { key: DocDef["category"]; label: string }[] = [
+  { key: "general",    label: "Général" },
+  { key: "academic",   label: "Académique" },
+  { key: "experience", label: "Expérience" },
+];
 
-export default function Step3Documents({
-  data,
-  documents,
-  onDocumentChange,
-  onBack,
-  onSubmit,
-  submitting,
-  uploadedCount,
-  totalToUpload,
-  error,
-}: Props) {
+function FileIcon() {
+  return (
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-400">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
+        <path d="M6 2.5h5.5L16 7v10.5a1 1 0 01-1 1H6a1 1 0 01-1-1V3.5a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M11.5 2.5V7H16" stroke="currentColor" strokeWidth="1.5" />
+      </svg>
+    </div>
+  );
+}
+
+export default function Step3Documents({ data, onBack, onNext }: Props) {
   const [downloaded, setDownloaded] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const academic: AcademicData = data.academic;
-  const hasGap = academic.gapYears > 1;
+  const hasGap = academic.hasGap && academic.gapYears > 0;
   const docList = useMemo(
-    () => buildDocList(academic.diplomaLevel, hasGap, academic.gapDocTypes),
-    [academic.diplomaLevel, academic.gapDocTypes, hasGap]
+    () => buildDocList(academic.diplomaLevel, hasGap, academic.gapDocTypes, academic.gapOtherDocLabel, academic.studyLanguage),
+    [academic.diplomaLevel, academic.gapDocTypes, academic.gapOtherDocLabel, academic.studyLanguage, hasGap]
   );
 
-  const uploaded = docList.filter((d) => documents[d.id]?.file).length;
-
-  const submitLabel = submitting
-    ? totalToUpload > 0
-      ? `Envoi… (${uploadedCount}/${totalToUpload})`
-      : "Envoi…"
-    : "Soumettre le dossier";
-
-  function handleDownload() {
-    downloadAdmissionPdf(data);
-    setDownloaded(true);
+  async function handleDownload() {
+    setGenerating(true);
+    try {
+      await downloadAdmissionPdf(data);
+      setDownloaded(true);
+    } finally {
+      setGenerating(false);
+    }
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <h2 className={sectionTitleClass}>Documents</h2>
+    <div className="flex flex-col gap-6">
+      <h2 className={sectionTitleClass}>Documents à fournir</h2>
 
-      <DocProgressBar uploaded={uploaded} total={docList.length} />
-
-      <p className="text-xs text-gray-500">
-        Chaque fichier doit faire moins de 5 Mo (limite Airtable). Compressez les PDF volumineux
-        avant de les envoyer. Le bouton PDF télécharge le résumé de l&apos;étudiant et la liste des
-        documents requis.
+      <p className="text-sm text-gray-500">
+        Voici la liste des documents requis pour votre dossier. Téléchargez le PDF pour la conserver.
       </p>
 
-      <div className="flex flex-col gap-3">
-        {docList.map((def) => (
-          <DocItem
-            key={def.id}
-            def={def}
-            entry={documents[def.id] ?? EMPTY_ENTRY}
-            onChange={(entry) => onDocumentChange(def.id, entry)}
-          />
-        ))}
+      <div className="flex flex-col gap-5">
+        {SECTIONS.map(({ key, label }) => {
+          const docs = docList.filter((d) => d.category === key);
+          if (docs.length === 0) return null;
+          return (
+            <div key={key} className="flex flex-col gap-2">
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">{label}</p>
+              {docs.map((def) => (
+                <div
+                  key={def.id}
+                  className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3"
+                >
+                  <FileIcon />
+                  <p className="text-sm font-medium text-gray-900">{def.name}</p>
+                </div>
+              ))}
+            </div>
+          );
+        })}
       </div>
-
-      {error && (
-        <p className="rounded-lg border border-italy-terracotta/30 bg-italy-terracotta/5 px-3 py-2 text-sm text-italy-terracotta-dark">
-          {error}
-        </p>
-      )}
 
       {downloaded && (
         <p className="rounded-lg border border-italy-green/30 bg-italy-green/5 px-3 py-2 text-sm text-italy-green-dark">
@@ -93,30 +84,20 @@ export default function Step3Documents({
         </p>
       )}
 
-      <div className="mt-2 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          disabled={submitting}
-          className={`${btnSecondaryClass} disabled:cursor-not-allowed disabled:opacity-50`}
-        >
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="button" onClick={onBack} className={btnSecondaryClass}>
           Retour
         </button>
         <button
           type="button"
           onClick={handleDownload}
-          disabled={submitting}
-          className={`${btnSecondaryClass} disabled:cursor-not-allowed disabled:opacity-50`}
+          disabled={generating}
+          className={`${btnSecondaryClass} disabled:opacity-60 disabled:cursor-not-allowed`}
         >
-          Télécharger le PDF
+          {generating ? "Génération…" : "Télécharger le PDF"}
         </button>
-        <button
-          type="button"
-          onClick={onSubmit}
-          disabled={submitting}
-          className={`${btnPrimaryClass} disabled:cursor-not-allowed disabled:opacity-70`}
-        >
-          {submitLabel}
+        <button type="button" onClick={onNext} className={btnPrimaryClass}>
+          Suivant →
         </button>
       </div>
     </div>

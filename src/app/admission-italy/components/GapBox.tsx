@@ -21,7 +21,6 @@ interface Props {
 }
 
 export default function GapBox({
-  gapYears,
   gapDescription,
   gapDocTypes,
   onDescriptionChange,
@@ -41,13 +40,8 @@ export default function GapBox({
     }
   }
 
-  const yearLabel = gapYears === 1 ? "an" : "ans";
-
   return (
     <div className={warningBoxClass}>
-      <h3 className="font-medium text-italy-terracotta-dark">
-        Interruption de {gapYears} {yearLabel} détectée — merci d&apos;expliquer
-      </h3>
 
       <div className="flex flex-col gap-1.5">
         <label className={labelClass} htmlFor="gapDescription">
