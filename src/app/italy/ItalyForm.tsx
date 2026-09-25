@@ -39,6 +39,14 @@ const initialData: ItalyFormData = {
   targetDegreeLevel: "",
   intendedIntake: "",
 
+  // Financial
+  financingPlan: "",
+  financialGuarantor: "",
+  blockedAccount: "",
+  hasAbroadSupport: "",
+  abroadSupportDetails: "",
+  projectBudget: "",
+
   // CV
   cvFile: null,
 };

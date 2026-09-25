@@ -37,6 +37,14 @@ export interface ItalyFormData {
   targetDegreeLevel: string;
   intendedIntake: string;
 
+  // Financial
+  financingPlan: string;
+  financialGuarantor: string;
+  blockedAccount: string;
+  hasAbroadSupport: string;
+  abroadSupportDetails: string;
+  projectBudget: string;
+
   // CV
   cvFile: File | null;
 }
