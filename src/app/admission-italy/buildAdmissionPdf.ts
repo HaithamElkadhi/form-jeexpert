@@ -1,364 +1,343 @@
 import jsPDF from "jspdf";
-import { buildDocList } from "./buildDocList";
+import { buildDocList, type DocDef } from "./buildDocList";
 import { DIPLOMA_LEVEL_OPTIONS } from "./options";
 import type { AdmissionFormData, DiplomaLevel } from "./types";
 
+const LEFT = 16;
+const RIGHT = 194;
+const CONTENT_W = RIGHT - LEFT;
+const COLORS = {
+  ink: [24, 39, 58] as [number, number, number],
+  muted: [103, 117, 135] as [number, number, number],
+  faint: [145, 158, 174] as [number, number, number],
+  line: [222, 229, 236] as [number, number, number],
+  pale: [246, 248, 251] as [number, number, number],
+  blue: [37, 99, 235] as [number, number, number],
+  bluePale: [239, 246, 255] as [number, number, number],
+  green: [21, 128, 61] as [number, number, number],
+  greenPale: [240, 253, 244] as [number, number, number],
+  purple: [126, 34, 206] as [number, number, number],
+  purplePale: [250, 245, 255] as [number, number, number],
+  amber: [180, 83, 9] as [number, number, number],
+  amberPale: [255, 251, 235] as [number, number, number],
+};
+
+type DocCategory = "general" | "academic" | "experience";
+
 function diplomaLabel(level: DiplomaLevel): string {
-  return DIPLOMA_LEVEL_OPTIONS.find((o) => o.value === level)?.label || level || "—";
+  return DIPLOMA_LEVEL_OPTIONS.find((option) => option.value === level)?.label || level || "—";
 }
 
-function orDash(v: string) { return v?.trim() || "—"; }
-
-function checkboxRows(docs: { name: string }[]): string {
-  const rows: string[] = [];
-  for (let i = 0; i < docs.length; i += 2) {
-    const a = docs[i];
-    const b = docs[i + 1];
-    rows.push(`
-      <div class="check-row">
-        <label class="check-item">
-          <span class="checkbox"></span>
-          <span>${a.name}</span>
-        </label>
-        ${b ? `<label class="check-item"><span class="checkbox"></span><span>${b.name}</span></label>` : "<div></div>"}
-      </div>`);
-  }
-  return rows.join("");
+function orDash(value: string): string {
+  return value?.trim() || "—";
 }
 
-// CSS for the hidden render container (no @page / page-break rules needed)
-const CSS = `
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-body, div {
-  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 9.5pt;
-  color: #1e293b;
-  background: #fff;
-  line-height: 1.55;
+function setText(doc: jsPDF, color: [number, number, number], size: number, bold = false) {
+  doc.setTextColor(...color);
+  doc.setFont("helvetica", bold ? "bold" : "normal");
+  doc.setFontSize(size);
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding-bottom: 10pt;
-  border-bottom: 2px solid #0f172a;
-  margin-bottom: 14pt;
-}
-.brand-name { font-size: 15pt; font-weight: 700; color: #0f172a; letter-spacing: -0.3px; }
-.brand-name span { color: #d97706; }
-.brand-slogan { font-size: 7.5pt; color: #64748b; margin-top: 2pt; font-weight: 500; }
-.doc-title { text-align: right; }
-.doc-title h2 { font-size: 11pt; font-weight: 700; color: #0f172a; }
-.doc-title .date { font-size: 7.5pt; color: #64748b; margin-top: 2pt; }
-
-.section-title {
-  font-size: 8pt; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.8px; color: #64748b; margin-bottom: 7pt;
-  display: flex; align-items: center; gap: 6pt;
-}
-.section-title::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
-
-.profile-card {
-  background: #f8fafc; border: 1px solid #e2e8f0;
-  border-radius: 8px; padding: 12pt 14pt; margin-bottom: 14pt;
-}
-.profile-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8pt 12pt; }
-.profile-field label {
-  font-size: 7pt; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.5px; color: #94a3b8; display: block; margin-bottom: 1.5pt;
-}
-.profile-field .value { font-size: 9pt; font-weight: 600; color: #0f172a; }
-
-.checklist { margin-bottom: 14pt; }
-.check-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4pt 10pt; margin-bottom: 4pt; }
-.check-item {
-  display: flex; align-items: flex-start; gap: 6pt;
-  font-size: 9pt; color: #1e293b; line-height: 1.4;
-  padding: 4.5pt 6pt; border-radius: 5px;
-  background: #fff; border: 1px solid #e2e8f0;
-}
-.checkbox {
-  flex-shrink: 0; width: 11pt; height: 11pt;
-  border: 1.5px solid #94a3b8; border-radius: 3px;
-  margin-top: 0.5pt; background: #fff;
+function wrapped(doc: jsPDF, text: string, width: number, size: number): string[] {
+  doc.setFontSize(size);
+  return doc.splitTextToSize(text, width) as string[];
 }
 
-.cat-label {
-  font-size: 7pt; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.6px; padding: 2pt 7pt; border-radius: 20px;
-  display: inline-block; margin-bottom: 6pt; margin-top: 10pt;
+function drawHeader(doc: jsPDF, title: string, subtitle: string) {
+  setText(doc, COLORS.ink, 18, true);
+  doc.text("Jee", LEFT, 19);
+  const jeeWidth = doc.getTextWidth("Jee");
+  setText(doc, COLORS.blue, 18, true);
+  doc.text("expert", LEFT + jeeWidth, 19);
+
+  setText(doc, COLORS.muted, 8.5);
+  doc.text("Votre avenir, notre expertise", LEFT, 25);
+  setText(doc, COLORS.ink, 12, true);
+  doc.text(title, RIGHT, 18, { align: "right" });
+  setText(doc, COLORS.muted, 8);
+  doc.text(subtitle, RIGHT, 24, { align: "right" });
+  doc.setDrawColor(...COLORS.line);
+  doc.setLineWidth(0.5);
+  doc.line(LEFT, 31, RIGHT, 31);
 }
-.cat-general    { background: #eff6ff; color: #1d4ed8; }
-.cat-academic   { background: #f0fdf4; color: #15803d; }
-.cat-experience { background: #fdf4ff; color: #7e22ce; }
 
-.notes-banner {
-  background: #fffbeb; border: 1px solid #fde68a;
-  border-left: 4px solid #d97706; border-radius: 6px;
-  padding: 10pt 12pt; margin-top: 12pt;
+function drawFooter(doc: jsPDF, page: number, total: number) {
+  doc.setDrawColor(...COLORS.line);
+  doc.setLineWidth(0.4);
+  doc.line(LEFT, 282, RIGHT, 282);
+  setText(doc, COLORS.muted, 8, true);
+  doc.text("Jeeexpert  •  Dossier d'admission Italie", LEFT, 288);
+  setText(doc, COLORS.muted, 8);
+  doc.text(`Page ${page} / ${total}`, RIGHT, 288, { align: "right" });
 }
-.notes-banner .note-title {
-  font-size: 8pt; font-weight: 700; color: #92400e;
-  margin-bottom: 6pt; text-transform: uppercase; letter-spacing: 0.5px;
+
+function drawSectionTitle(doc: jsPDF, title: string, y: number): number {
+  setText(doc, COLORS.muted, 8, true);
+  doc.text(title.toLocaleUpperCase("fr-FR"), LEFT, y);
+  const labelW = doc.getTextWidth(title.toLocaleUpperCase("fr-FR")) + 4;
+  doc.setDrawColor(...COLORS.line);
+  doc.setLineWidth(0.4);
+  doc.line(LEFT + labelW, y - 1, RIGHT, y - 1);
+  return y + 6;
 }
-.notes-banner ul { padding-left: 12pt; list-style: disc; }
-.notes-banner li { font-size: 8.5pt; color: #78350f; margin-bottom: 3pt; line-height: 1.5; }
-.notes-banner li strong { font-weight: 700; }
 
-.footer {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-top: 14pt; padding-top: 8pt; border-top: 1px solid #e2e8f0;
-  font-size: 7pt; color: #94a3b8;
-}
-.footer .brand { font-weight: 600; color: #64748b; }
-.footer .brand span { color: #d97706; }
-
-.steps-header { text-align: center; margin-bottom: 18pt; }
-.steps-header h1 { font-size: 14pt; font-weight: 700; color: #0f172a; margin-bottom: 4pt; }
-.steps-header p { font-size: 9pt; color: #64748b; }
-
-.timeline { position: relative; }
-.step { display: flex; gap: 12pt; margin-bottom: 14pt; position: relative; }
-.step::before {
-  content: ''; position: absolute;
-  left: 14.5pt; top: 30pt; bottom: -14pt;
-  width: 1.5px; background: #e2e8f0;
-}
-.step:last-child::before { display: none; }
-
-.step-badge {
-  flex-shrink: 0; width: 30pt; height: 30pt; border-radius: 50%;
-  background: #0f172a; color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11pt; font-weight: 700; margin-top: 1pt;
-}
-.step-badge.accent { background: #2563eb; }
-.step-body { flex: 1; }
-.step-title { font-size: 10.5pt; font-weight: 700; color: #0f172a; margin-bottom: 5pt; }
-.step-body p, .step-body li { font-size: 9pt; color: #334155; line-height: 1.55; }
-.step-body ul { padding-left: 12pt; list-style: disc; margin-top: 3pt; }
-.step-body li { margin-bottom: 2pt; }
-
-.auth-table { width: 100%; border-collapse: collapse; margin-top: 6pt; font-size: 8.5pt; }
-.auth-table tr:nth-child(odd) td { background: #f8fafc; }
-.auth-table td { padding: 4pt 7pt; border: 1px solid #e2e8f0; color: #1e293b; line-height: 1.4; }
-.auth-table td:first-child { font-weight: 600; color: #1e293b; white-space: nowrap; width: 38%; }
-.auth-table td:last-child { color: #334155; }
-
-.step-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10pt 12pt; }
-
-.tip-box {
-  background: #eff6ff; border: 1px solid #bfdbfe;
-  border-left: 4px solid #2563eb; border-radius: 5px;
-  padding: 6pt 10pt; margin-top: 6pt; font-size: 8.5pt; color: #1e3a8a; line-height: 1.5;
-}
-`;
-
-function buildPage1Html(data: AdmissionFormData): string {
+function drawProfile(doc: jsPDF, data: AdmissionFormData, y: number): number {
   const { profile, academic } = data;
-  const hasGap = academic.hasGap && academic.gapYears > 0;
+  const fields: [string, string][] = [
+    ["Prénom", orDash(profile.firstName)],
+    ["Nom", orDash(profile.lastName)],
+    ["E-mail", orDash(profile.email)],
+    ["Téléphone", orDash(profile.phone)],
+    ["Programme visé", orDash(profile.programType)],
+    ["Dernier diplôme", diplomaLabel(academic.diplomaLevel)],
+  ];
+  if (academic.fieldOfStudy) fields.push(["Nom du diplôme", academic.fieldOfStudy]);
+  if (academic.scoreValue) fields.push(["Moyenne / 20", academic.scoreValue]);
+  if (academic.yearObtained) fields.push(["Année d'obtention", academic.yearObtained]);
+  if (academic.studyLanguage) fields.push(["Langue d'enseignement", academic.studyLanguage]);
+  if (academic.hasGap && academic.gapYears > 0) {
+    fields.push(["Années de gap", `${academic.gapYears} ${academic.gapYears === 1 ? "an" : "ans"}`]);
+  }
+
+  const cols = 3;
+  const gap = 5;
+  const cellW = (CONTENT_W - gap * (cols - 1)) / cols;
+  const rows = Math.ceil(fields.length / cols);
+  const rowH = 15;
+  const boxH = rows * rowH + 8;
+  doc.setFillColor(...COLORS.pale);
+  doc.setDrawColor(...COLORS.line);
+  doc.roundedRect(LEFT, y, CONTENT_W, boxH, 2, 2, "FD");
+
+  fields.forEach(([label, value], index) => {
+    const col = index % cols;
+    const row = Math.floor(index / cols);
+    const x = LEFT + 5 + col * (cellW + gap);
+    const top = y + 7 + row * rowH;
+    setText(doc, COLORS.faint, 6.5, true);
+    doc.text(label.toLocaleUpperCase("fr-FR"), x, top);
+    setText(doc, COLORS.ink, 8.5, true);
+    const lines = wrapped(doc, value, cellW - 2, 8.5).slice(0, 2);
+    doc.text(lines, x, top + 5);
+  });
+  return y + boxH + 7;
+}
+
+function categoryStyle(category: DocCategory) {
+  if (category === "academic") return { label: "Académique", color: COLORS.green, pale: COLORS.greenPale };
+  if (category === "experience") return { label: "Expérience / Gap", color: COLORS.purple, pale: COLORS.purplePale };
+  return { label: "Général", color: COLORS.blue, pale: COLORS.bluePale };
+}
+
+function drawCategory(doc: jsPDF, title: string, docs: DocDef[], y: number): number {
+  if (!docs.length) return y;
+  const style = categoryStyle(title as DocCategory);
+  setText(doc, style.color, 8, true);
+  const pillW = doc.getTextWidth(style.label) + 8;
+  doc.setFillColor(...style.pale);
+  doc.roundedRect(LEFT, y - 4.5, pillW, 7, 3.5, 3.5, "F");
+  doc.text(style.label, LEFT + 4, y);
+  y += 5;
+
+  const gap = 4;
+  const colW = (CONTENT_W - gap) / 2;
+  const rowH = 9.5;
+  for (let i = 0; i < docs.length; i += 2) {
+    const rowDocs = [docs[i], docs[i + 1]].filter(Boolean);
+    const heights = rowDocs.map((item) => Math.max(1, wrapped(doc, item.name, colW - (item.lessUrgent ? 36 : 13), 8.2).length));
+    const height = Math.max(rowH, ...heights.map((n) => Math.max(n * 4 + 5, itemChipHeight(rowDocs[0], rowDocs[1]))));
+    rowDocs.forEach((item, column) => {
+      const x = LEFT + column * (colW + gap);
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(...COLORS.line);
+      doc.roundedRect(x, y, colW, height - 1, 1.5, 1.5, "FD");
+      doc.setDrawColor(...COLORS.faint);
+      doc.setLineWidth(0.4);
+      doc.roundedRect(x + 2.5, y + 2.1, 3.2, 3.2, 0.5, 0.5, "S");
+      setText(doc, COLORS.ink, 8.2);
+      doc.text(wrapped(doc, item.name, colW - (item.lessUrgent ? 36 : 13), 8.2), x + 8, y + 5.5);
+      if (item.lessUrgent) {
+        doc.setFillColor(...COLORS.amberPale);
+        doc.setDrawColor(253, 230, 138);
+        doc.roundedRect(x + colW - 25, y + 1.3, 23, 5, 2.5, 2.5, "FD");
+        setText(doc, COLORS.amber, 5.2, true);
+        doc.text("Moins urgent", x + colW - 13.5, y + 4.7, { align: "center" });
+      }
+    });
+    y += height + 1.5;
+  }
+  return y + 2;
+}
+
+function itemChipHeight(first: DocDef, second?: DocDef): number {
+  return first.lessUrgent || second?.lessUrgent ? 8 : 0;
+}
+
+function drawNotes(doc: jsPDF, y: number): number {
+  const notes = [
+    "Documents académiques (sauf Plan d'études) : authentification, apostille et traduction assermentée en italien requises.",
+    "Plan d'études : traduction libre suffisante ; ni apostille ni légalisation nécessaire.",
+    "Les documents marqués « Moins urgent » peuvent être envoyés séparément plus tard.",
+  ];
+  const textX = LEFT + 8;
+  const textW = CONTENT_W - 14;
+  const lines = notes.flatMap((note) => wrapped(doc, note, textW, 8));
+  const boxH = 10 + lines.length * 4.2;
+  doc.setFillColor(...COLORS.amberPale);
+  doc.setDrawColor(253, 230, 138);
+  doc.roundedRect(LEFT, y, CONTENT_W, boxH, 2, 2, "FD");
+  doc.setFillColor(...COLORS.amber);
+  doc.roundedRect(LEFT, y, 1.5, boxH, 0.7, 0.7, "F");
+  setText(doc, COLORS.amber, 8, true);
+  doc.text("À RETENIR", textX, y + 5.5);
+  let lineY = y + 10;
+  notes.forEach((note) => {
+    const noteLines = wrapped(doc, note, textW - 4, 8);
+    doc.setFillColor(...COLORS.amber);
+    doc.circle(textX + 0.8, lineY - 0.8, 0.55, "F");
+    setText(doc, [120, 53, 15], 8);
+    doc.text(noteLines, textX + 3, lineY);
+    lineY += noteLines.length * 4.2 + 1.2;
+  });
+  return y + boxH;
+}
+
+function drawChecklistPages(doc: jsPDF, data: AdmissionFormData, generatedDate: string): void {
+  const { profile, academic } = data;
   const docList = buildDocList(
-    academic.diplomaLevel, hasGap,
-    academic.gapDocTypes, academic.gapOtherDocLabel,
-    academic.studyLanguage
+    academic.diplomaLevel,
+    academic.hasGap && academic.gapYears > 0,
+    academic.gapDocTypes,
+    academic.gapOtherDocLabel,
+    academic.studyLanguage,
   );
-  const generalDocs    = docList.filter((d) => d.category === "general");
-  const academicDocs   = docList.filter((d) => d.category === "academic");
-  const experienceDocs = docList.filter((d) => d.category === "experience");
-  const dateStr = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
-  const gapYrLabel = academic.gapYears === 1 ? "an" : "ans";
+  const groups: [DocCategory, DocDef[]][] = [
+    ["general", docList.filter((item) => item.category === "general")],
+    ["academic", docList.filter((item) => item.category === "academic")],
+    ["experience", docList.filter((item) => item.category === "experience")],
+  ];
+  let page = 1;
+  const startPage = () => {
+    if (page > 1) doc.addPage();
+    drawHeader(doc, "Dossier d'admission — Italie", `Généré le ${generatedDate}`);
+    let y = drawSectionTitle(doc, "Profil candidat", 40);
+    y = drawProfile(doc, { ...data, profile }, y);
+    return y;
+  };
+  let y = startPage();
+  y = drawSectionTitle(doc, "Documents à préparer", y + 1);
 
-  return `
-  <div class="header">
-    <div>
-      <div class="brand-name">Jee<span>expert</span></div>
-      <div class="brand-slogan">Votre avenir, notre expertise</div>
-    </div>
-    <div class="doc-title">
-      <h2>Dossier d'admission — Italie</h2>
-      <div class="date">Généré le ${dateStr}</div>
-    </div>
-  </div>
+  for (const [category, items] of groups) {
+    if (!items.length) continue;
+    const estimated = 11 + Math.ceil(items.length / 2) * 12;
+    if (y + estimated > 260) {
+      page += 1;
+      doc.addPage();
+      drawHeader(doc, "Dossier d'admission — Italie", `${profile.firstName} ${profile.lastName}`.trim());
+      y = 43;
+      setText(doc, COLORS.muted, 8, true);
+      doc.text("SUITE — DOCUMENTS À PRÉPARER", LEFT, y);
+      y += 7;
+    }
+    y = drawCategory(doc, category, items, y);
+  }
 
-  <div class="section-title">Profil candidat</div>
-  <div class="profile-card">
-    <div class="profile-grid">
-      <div class="profile-field"><label>Prénom</label><div class="value">${orDash(profile.firstName)}</div></div>
-      <div class="profile-field"><label>Nom</label><div class="value">${orDash(profile.lastName)}</div></div>
-      <div class="profile-field"><label>E-mail</label><div class="value">${orDash(profile.email)}</div></div>
-      <div class="profile-field"><label>Téléphone</label><div class="value">${orDash(profile.phone)}</div></div>
-      ${profile.programType ? `<div class="profile-field"><label>Programme visé</label><div class="value">${profile.programType}</div></div>` : ""}
-      <div class="profile-field"><label>Dernier diplôme</label><div class="value">${diplomaLabel(academic.diplomaLevel)}</div></div>
-      ${academic.fieldOfStudy ? `<div class="profile-field"><label>Nom du diplôme</label><div class="value">${academic.fieldOfStudy}</div></div>` : ""}
-      ${academic.scoreValue ? `<div class="profile-field"><label>Moyenne / 20</label><div class="value">${academic.scoreValue}</div></div>` : ""}
-      ${academic.yearObtained ? `<div class="profile-field"><label>Année d'obtention</label><div class="value">${academic.yearObtained}</div></div>` : ""}
-      ${academic.studyLanguage ? `<div class="profile-field"><label>Langue d'enseignement</label><div class="value">${academic.studyLanguage}</div></div>` : ""}
-      ${hasGap ? `<div class="profile-field"><label>Années de gap</label><div class="value">${academic.gapYears} ${gapYrLabel}</div></div>` : ""}
-    </div>
-  </div>
-
-  <div class="section-title">Documents requis</div>
-
-  ${generalDocs.length > 0 ? `<div><span class="cat-label cat-general">Général</span></div><div class="checklist">${checkboxRows(generalDocs)}</div>` : ""}
-  ${academicDocs.length > 0 ? `<div><span class="cat-label cat-academic">Académique</span></div><div class="checklist">${checkboxRows(academicDocs)}</div>` : ""}
-  ${experienceDocs.length > 0 ? `<div><span class="cat-label cat-experience">Expérience / Gap</span></div><div class="checklist">${checkboxRows(experienceDocs)}</div>` : ""}
-
-  <div class="notes-banner">
-    <div class="note-title">⚠ Points importants</div>
-    <ul>
-      <li><strong>Documents académiques (sauf Plan d'études) :</strong> Authentification + Apostille + Traduction assermentée en italien requises.</li>
-      <li><strong>Plan d'études :</strong> Traduction libre suffisante — ni apostille ni légalisation nécessaire.</li>
-    </ul>
-  </div>
-
-  <div class="footer">
-    <div class="brand">Jee<span>expert</span> • Dossier d'admission Italie</div>
-    <div>Page 1 / 2</div>
-  </div>`;
+  if (y + 42 > 274) {
+    page += 1;
+    doc.addPage();
+    drawHeader(doc, "Dossier d'admission — Italie", `${profile.firstName} ${profile.lastName}`.trim());
+    y = 43;
+  }
+  drawNotes(doc, y + 1);
 }
 
-function buildPage2Html(): string {
-  return `
-  <div class="header">
-    <div>
-      <div class="brand-name">Jee<span>expert</span></div>
-      <div class="brand-slogan">Votre avenir, notre expertise</div>
-    </div>
-    <div class="doc-title">
-      <h2>Guide de Légalisation</h2>
-      <div class="date">Procédure administrative — Documents académiques</div>
-    </div>
-  </div>
+function drawGuide(doc: jsPDF, generatedDate: string) {
+  doc.addPage();
+  drawHeader(doc, "Guide de légalisation", `Généré le ${generatedDate} · Procédure en Tunisie`);
 
-  <div class="steps-header">
-    <p>Suivez ces 5 étapes dans l'ordre chronologique pour préparer vos documents académiques.</p>
-  </div>
+  setText(doc, COLORS.ink, 16, true);
+  doc.text("Préparez vos documents", LEFT, 46);
+  setText(doc, COLORS.muted, 9);
+  doc.text("Suivez ces étapes dans l'ordre. Les exigences peuvent varier selon l'établissement.", LEFT, 53);
 
-  <div class="timeline">
-    <div class="step">
-      <div class="step-badge">1</div>
-      <div class="step-body">
-        <div class="step-title">Authentifier le diplôme</div>
-        <div class="step-card">
-          <table class="auth-table">
-            <tr><td>Baccalauréat</td><td>Ministère de l'Éducation</td></tr>
-            <tr><td>Licence, Master, Doctorat</td><td>Ministère de l'Enseignement Supérieur (Rectorat)</td></tr>
-            <tr><td>BTP, BTS</td><td>Ministère de l'Emploi et de la Formation Professionnelle</td></tr>
-            <tr><td>Diplômes de santé</td><td>Ministère de la Santé</td></tr>
-            <tr><td>Université privée</td><td>Décision d'équivalence — Ministère de l'Enseignement Supérieur</td></tr>
-          </table>
-        </div>
-      </div>
-    </div>
+  const steps = [
+    {
+      title: "Authentifier le diplôme",
+      body: "Présentez chaque document à l'autorité compétente :",
+      bullets: [
+        "Baccalauréat : Ministère de l'Éducation",
+        "Licence, Master, Doctorat : Ministère de l'Enseignement Supérieur (Rectorat)",
+        "BTP, BTS : Ministère de l'Emploi et de la Formation Professionnelle",
+        "Diplômes de santé : Ministère de la Santé",
+        "Université privée : décision d'équivalence du Ministère de l'Enseignement Supérieur",
+      ],
+    },
+    {
+      title: "Faire des copies conformes (Moussad9a)",
+      bullets: ["Photocopiez chaque document original, recto et verso.", "Faites certifier chaque copie conforme auprès de la municipalité locale."],
+    },
+    {
+      title: "Faire apostiller les documents",
+      bullets: ["Déposez les originaux et les copies conformes chez un notaire.", "Demandez l'apostille sur les documents originaux et les copies conformes."],
+    },
+    {
+      title: "Faire traduire en italien",
+      bullets: ["Confiez les documents à un traducteur assermenté agréé par l'Ambassade d'Italie.", "Vérifiez que le nom et le prénom correspondent exactement au passeport."],
+      tip: "La liste des traducteurs agréés est disponible auprès de l'Ambassade d'Italie.",
+    },
+    {
+      title: "Faire apostiller la traduction",
+      bullets: ["Retournez chez le notaire avec la traduction signée.", "Demandez l'apostille de la signature du traducteur assermenté."],
+    },
+  ];
 
-    <div class="step">
-      <div class="step-badge accent">2</div>
-      <div class="step-body">
-        <div class="step-title">Copies conformes (Moussad9a)</div>
-        <div class="step-card">
-          <ul>
-            <li>Photocopier chaque document original recto et verso.</li>
-            <li>Faire certifier conforme chaque copie auprès de la municipalité locale.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
+  let y = 62;
+  for (let index = 0; index < steps.length; index += 1) {
+    const step = steps[index];
+    const xText = LEFT + 13;
+    const textW = CONTENT_W - 15;
+    const content: { text: string; color: [number, number, number]; bold?: boolean }[] = [];
+    if (step.body) content.push({ text: step.body, color: COLORS.muted });
+    for (const bullet of step.bullets) content.push({ text: `•  ${bullet}`, color: COLORS.ink });
+    if (step.tip) content.push({ text: `Conseil : ${step.tip}`, color: COLORS.blue });
+    const contentLines = content.reduce((sum, item) => sum + wrapped(doc, item.text, textW, 8.5).length, 0);
+    const cardH = 13 + contentLines * 4.4 + (step.tip ? 1 : 0);
 
-    <div class="step">
-      <div class="step-badge">3</div>
-      <div class="step-body">
-        <div class="step-title">Apostille</div>
-        <div class="step-card">
-          <ul>
-            <li>Déposer le dossier certifié conforme chez le <strong>notaire</strong>.</li>
-            <li>Le notaire appose l'Apostille sur les documents originaux et copies conformes.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
+    doc.setFillColor(...(index % 2 === 0 ? COLORS.ink : COLORS.blue));
+    doc.circle(LEFT + 4, y + 2, 4, "F");
+    setText(doc, [255, 255, 255], 9, true);
+    doc.text(String(index + 1), LEFT + 4, y + 3, { align: "center" });
+    setText(doc, COLORS.ink, 10, true);
+    doc.text(step.title, xText, y + 3);
+    doc.setFillColor(...COLORS.pale);
+    doc.setDrawColor(...COLORS.line);
+    doc.roundedRect(xText, y + 6, textW, cardH, 2, 2, "FD");
 
-    <div class="step">
-      <div class="step-badge accent">4</div>
-      <div class="step-body">
-        <div class="step-title">Traduction officielle en italien</div>
-        <div class="step-card">
-          <ul>
-            <li>Confier les documents à un <strong>traducteur assermenté agréé</strong> par l'Ambassade d'Italie.</li>
-            <li>Vérifier scrupuleusement l'orthographe exacte du nom et prénom — conformité stricte avec le passeport.</li>
-          </ul>
-        </div>
-        <div class="tip-box">
-          La liste des traducteurs agréés est disponible auprès de l'Ambassade d'Italie de votre pays.
-        </div>
-      </div>
-    </div>
-
-    <div class="step">
-      <div class="step-badge">5</div>
-      <div class="step-body">
-        <div class="step-title">Apostille de la traduction</div>
-        <div class="step-card">
-          <ul>
-            <li>Retourner chez le <strong>notaire</strong> avec la traduction signée.</li>
-            <li>Le notaire appose l'Apostille sur la signature du traducteur assermenté.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="footer">
-    <div class="brand">Jee<span>expert</span> • Dossier d'admission Italie</div>
-    <div>Page 2 / 2</div>
-  </div>`;
-}
-
-function makePageEl(innerHtml: string): HTMLDivElement {
-  const div = document.createElement("div");
-  // A4 at 96 dpi = 794 × 1123 px; 15mm margin ≈ 57px
-  div.style.cssText =
-    "width:794px;height:1123px;overflow:hidden;background:#fff;" +
-    "padding:57px;box-sizing:border-box;";
-  div.innerHTML = `<style>${CSS}</style>${innerHtml}`;
-  return div;
+    let textY = y + 12;
+    for (const item of content) {
+      const lines = wrapped(doc, item.text, textW - 10, 8.5);
+      setText(doc, item.color, 8.5, item.bold ?? false);
+      doc.text(lines, xText + 5, textY);
+      textY += lines.length * 4.4 + 1;
+    }
+    y += cardH + 12;
+  }
 }
 
 export async function downloadAdmissionPdf(data: AdmissionFormData): Promise<void> {
-  // Dynamic import — html2canvas is a large library, load only when needed
-  const { default: html2canvas } = await import("html2canvas");
+  const date = new Date().toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+  const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
+  drawChecklistPages(pdf, data, date);
+  drawGuide(pdf, date);
 
-  const wrap = document.createElement("div");
-  wrap.setAttribute("aria-hidden", "true");
-  wrap.style.cssText =
-    "position:fixed;top:0;left:-9999px;z-index:-1;pointer-events:none;";
-
-  const p1El = makePageEl(buildPage1Html(data));
-  const p2El = makePageEl(buildPage2Html());
-  wrap.appendChild(p1El);
-  wrap.appendChild(p2El);
-  document.body.appendChild(wrap);
-
-  try {
-    // Wait for fonts + layout
-    await document.fonts.ready;
-    await new Promise<void>((resolve) =>
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
-    );
-
-    const canvasOpts = { scale: 2, useCORS: false, logging: false, backgroundColor: "#ffffff" };
-    const [c1, c2] = await Promise.all([
-      html2canvas(p1El, canvasOpts),
-      html2canvas(p2El, canvasOpts),
-    ]);
-
-    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-    pdf.addImage(c1.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 210, 297);
-    pdf.addPage();
-    pdf.addImage(c2.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 210, 297);
-    pdf.save("dossier-admission-italie.pdf");
-  } finally {
-    document.body.removeChild(wrap);
+  const totalPages = pdf.getNumberOfPages();
+  for (let page = 1; page <= totalPages; page += 1) {
+    pdf.setPage(page);
+    drawFooter(pdf, page, totalPages);
   }
+  pdf.save("dossier-admission-italie.pdf");
 }

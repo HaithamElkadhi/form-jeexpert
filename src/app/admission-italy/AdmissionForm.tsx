@@ -43,9 +43,9 @@ export default function AdmissionForm() {
     }));
   }
 
-  async function handleSubmit() {
+  async function handleSubmit(existingRecordId?: string) {
     setError(null);
-    const result = await submitDossier(data);
+    const result = await submitDossier(data, existingRecordId);
     if (result.success) {
       setSuccessMeta({
         docsUploaded: result.docsUploaded,
@@ -109,7 +109,7 @@ export default function AdmissionForm() {
                 data={data}
                 onDocumentChange={updateDocument}
                 onBack={() => setStep(3)}
-                onSubmit={handleSubmit}
+                onSubmit={(existingRecordId) => handleSubmit(existingRecordId)}
                 submitting={submitting}
                 uploadedCount={uploadedCount}
                 totalToUpload={totalToUpload}

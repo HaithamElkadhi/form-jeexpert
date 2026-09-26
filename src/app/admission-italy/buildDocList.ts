@@ -4,6 +4,7 @@ export interface DocDef {
   id: string;
   name: string;
   category: "general" | "academic" | "experience";
+  lessUrgent?: boolean;
   extraField?: "expiryDate" | "certName";
 }
 
@@ -11,10 +12,10 @@ const ALWAYS_DOCS: DocDef[] = [
   { id: "photo",    name: "Photo d'identité",          category: "general" },
   { id: "passport", name: "Passeport",                  category: "general", extraField: "expiryDate" },
   { id: "cv",       name: "CV",                         category: "general" },
-  { id: "lang",     name: "Certificat de langue",       category: "general", extraField: "certName" },
-  { id: "ddv",      name: "Déclaration de valeur (ou CIMEA)", category: "general" },
-  { id: "rec_1",    name: "Lettre de recommandation 1", category: "general" },
-  { id: "rec_2",    name: "Lettre de recommandation 2", category: "general" },
+  { id: "lang",     name: "Certificat de langue",       category: "general", lessUrgent: true, extraField: "certName" },
+  { id: "ddv",      name: "Déclaration de valeur (ou CIMEA)", category: "general", lessUrgent: true },
+  { id: "rec_1",    name: "Lettre de recommandation 1", category: "general", lessUrgent: true },
+  { id: "rec_2",    name: "Lettre de recommandation 2", category: "general", lessUrgent: true },
 ];
 
 const PLAN_LICENCE: DocDef  = { id: "plan_licence",  name: "Plan d'études — Licence",  category: "academic" };
@@ -49,10 +50,10 @@ const PHD_DOCS: DocDef[] = [
 ];
 
 const GAP_DOC_MAP: Record<Exclude<GapDocType, "No document">, DocDef> = {
-  "Internship / Stage":   { id: "gap_stage",    name: "Attestation de stage",     category: "experience" },
-  "Work certificate":     { id: "gap_work",     name: "Attestation de travail",    category: "experience" },
-  "Training / Formation": { id: "gap_training", name: "Attestation de formation",  category: "experience" },
-  "Other document":       { id: "gap_other",    name: "Document justificatif",     category: "experience" },
+  "Internship / Stage":   { id: "gap_stage",    name: "Attestation de stage",     category: "experience", lessUrgent: true },
+  "Work certificate":     { id: "gap_work",     name: "Attestation de travail",    category: "experience", lessUrgent: true },
+  "Training / Formation": { id: "gap_training", name: "Attestation de formation",  category: "experience", lessUrgent: true },
+  "Other document":       { id: "gap_other",    name: "Document justificatif",     category: "experience", lessUrgent: true },
 };
 
 function diplomaDocs(diplomaLevel: DiplomaLevel): DocDef[] {

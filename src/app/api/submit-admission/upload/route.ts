@@ -21,7 +21,10 @@ export async function POST(req: NextRequest) {
   const file = formData.get("file");
 
   if (!recordId || !docId || !firstName || !lastName || !(file instanceof File) || file.size === 0) {
-    return NextResponse.json({ error: "Missing required upload fields" }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: "Données d'envoi incomplètes. Rechargez la page et réessayez." },
+      { status: 400 }
+    );
   }
 
   if (file.size > MAX_ATTACHMENT_BYTES) {
@@ -29,7 +32,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: `"${file.name}" is ${mb} MB. Airtable only accepts files up to 5 MB — please compress it and try again.`,
+        error: `Le fichier « ${file.name} » fait ${mb} Mo. La limite est de 5 Mo — compressez-le et réessayez.`,
       },
       { status: 400 }
     );
@@ -41,9 +44,19 @@ export async function POST(req: NextRequest) {
     await uploadAdmissionAttachment(recordId, file, filename);
     return NextResponse.json({ success: true, filename });
   } catch (err) {
-    console.error(err);
-    const message = err instanceof Error ? err.message : "File upload failed";
-    const status = message.includes("5 MB") ? 400 : 502;
-    return NextResponse.json({ success: false, error: message }, { status });
+    console.error("[upload]", err);
+    const message =
+      err instanceof Error && err.message
+        ? err.message
+        : `Échec de l'envoi de « ${filename} ». Réessayez ou contactez-nous sur WhatsApp.`;
+    // 400 for client-side issues (size, corrupt file), 502 for server/Airtable issues
+    const isClientError =
+      message.includes("5 Mo") ||
+      message.includes("Resélectionnez") ||
+      message.includes("format ou contenu");
+    return NextResponse.json(
+      { success: false, error: message },
+      { status: isClientError ? 400 : 502 }
+    );
   }
 }

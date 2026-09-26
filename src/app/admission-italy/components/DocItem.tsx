@@ -9,6 +9,8 @@ interface Props {
   def: DocDef;
   entry: DocumentEntry;
   onChange: (entry: DocumentEntry) => void;
+  /** Doc was already uploaded in a previous submission — show as grayed/done. */
+  alreadySubmitted?: boolean;
 }
 
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
@@ -16,7 +18,7 @@ const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 function DocIcon({ uploaded }: { uploaded: boolean }) {
   if (uploaded) {
     return (
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-italy-green/15 text-italy-green">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#18A999]/15 text-[#18A999]">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
           <path
             d="M4 10.5L8 14.5L16 5.5"
@@ -44,18 +46,36 @@ function DocIcon({ uploaded }: { uploaded: boolean }) {
   );
 }
 
-export default function DocItem({ def, entry, onChange }: Props) {
+export default function DocItem({ def, entry, onChange, alreadySubmitted }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const uploaded = Boolean(entry.file);
   const tooLarge = Boolean(entry.file && entry.file.size > MAX_ATTACHMENT_BYTES);
+
+  // Already submitted in a prior session — render as a read-only "done" row
+  if (alreadySubmitted) {
+    return (
+      <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 opacity-60">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#18A999]/15 text-[#18A999]">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
+            <path d="M4 10.5L8 14.5L16 5.5" stroke="currentColor" strokeWidth="2.2"
+              strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+        <p className="flex-1 text-sm font-medium text-gray-500">{def.name}</p>
+        <span className="rounded-full bg-[#18A999]/10 px-2.5 py-0.5 text-xs font-semibold text-[#18A999]">
+          Déjà envoyé
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div
       className={`flex flex-col gap-3 rounded-xl border p-4 transition-colors ${
         tooLarge
-          ? "border-italy-terracotta/40 bg-italy-terracotta/5"
+          ? "border-red-200 bg-red-50"
           : uploaded
-            ? "border-italy-green/40 bg-italy-green/5"
+            ? "border-[#18A999]/40 bg-[#18A999]/5"
             : "border-gray-200 bg-white"
       }`}
     >
@@ -65,7 +85,7 @@ export default function DocItem({ def, entry, onChange }: Props) {
         <div className="min-w-0 flex-1">
           <p className="font-medium text-gray-900">{def.name}</p>
           {tooLarge && entry.file && (
-            <p className="mt-1 text-xs text-italy-terracotta-dark">
+            <p className="mt-1 text-xs text-red-700">
               Le fichier fait {(entry.file.size / (1024 * 1024)).toFixed(1)} Mo — max 5 Mo.
               Merci de le compresser et de le renvoyer.
             </p>
@@ -76,7 +96,7 @@ export default function DocItem({ def, entry, onChange }: Props) {
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-italy-green text-white"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#18A999] text-white"
             aria-label={`${def.name} téléversé — remplacer`}
             title="Remplacer le fichier"
           >

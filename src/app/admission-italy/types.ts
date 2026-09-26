@@ -82,3 +82,8 @@ export const initialAdmissionData: AdmissionFormData = {
 };
 
 export type AdmissionStep = 1 | 2 | 3 | 4 | "success";
+
+export interface ExistingSubmission {
+  recordId: string;
+  submittedDocIds: string[];
+}

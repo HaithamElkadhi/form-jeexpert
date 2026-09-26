@@ -28,14 +28,93 @@ function formatMb(bytes: number): string {
   return (bytes / (1024 * 1024)).toFixed(1);
 }
 
+/**
+ * Detects whether a thrown error is a browser-level network failure
+ * (no internet, DNS failure, connection refused, SSL error, etc.)
+ * and replaces the raw technical message with a clear French explanation.
+ */
+function toUserError(err: unknown, context: string, timeoutMs: number): string {
+  if (!(err instanceof Error)) {
+    return `Une erreur inattendue s'est produite ${context}. Réessayez ou contactez-nous sur WhatsApp.`;
+  }
+
+  const name = err.name;
+  const msg  = err.message.toLowerCase();
+
+  // AbortController fired — our own timeout
+  if (name === "AbortError") {
+    const secs = Math.round(timeoutMs / 1000);
+    return (
+      `La requête a expiré (>${secs}s) ${context}. ` +
+      `Votre connexion internet est peut-être lente ou instable — réessayez dans quelques secondes.`
+    );
+  }
+
+  // Browser network errors: "Failed to fetch", "NetworkError when attempting to fetch resource", etc.
+  const isNetworkError =
+    name === "TypeError" &&
+    (msg.includes("failed to fetch") ||
+      msg.includes("networkerror") ||
+      msg.includes("network request failed") ||
+      msg.includes("load failed") ||        // Safari
+      msg.includes("fetch is aborted") ||
+      msg.includes("the internet connection appears to be offline"));
+
+  if (isNetworkError) {
+    const online = typeof navigator !== "undefined" ? navigator.onLine : true;
+    if (!online) {
+      return `Vous n'êtes pas connecté à internet. Vérifiez votre connexion Wi-Fi ou données mobiles et réessayez.`;
+    }
+    return (
+      `Impossible de joindre le serveur ${context}. ` +
+      `Vérifiez votre connexion internet et réessayez. Si le problème persiste, contactez-nous sur WhatsApp.`
+    );
+  }
+
+  // The error is already a readable message we threw ourselves — pass it through.
+  return err.message;
+}
+
+/**
+ * fetch() with a timeout and friendly network-error translation.
+ * @param timeoutMs  Request timeout in milliseconds (default 30s).
+ * @param context    Plain-language description shown in the error ("lors de la création du dossier").
+ */
+async function safeFetch(
+  input: RequestInfo | URL,
+  init: RequestInit | undefined,
+  context: string,
+  timeoutMs = 30_000
+): Promise<Response> {
+  // Fail immediately if the device is offline — no need to wait for a timeout.
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    throw new Error(
+      `Vous n'êtes pas connecté à internet. Vérifiez votre connexion Wi-Fi ou données mobiles et réessayez.`
+    );
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } catch (err) {
+    throw new Error(toUserError(err, context, timeoutMs));
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export function useSubmitDossier() {
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting]       = useState(false);
   const [uploadedCount, setUploadedCount] = useState(0);
   const [totalToUpload, setTotalToUpload] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]                 = useState<string | null>(null);
 
   async function submitDossier(
-    formState: AdmissionFormData
+    formState: AdmissionFormData,
+    /** When provided, skip record creation and upload to this existing record. */
+    existingRecordId?: string
   ): Promise<SubmitResult | SubmitError> {
     setSubmitting(true);
     setError(null);
@@ -43,82 +122,133 @@ export function useSubmitDossier() {
 
     const { profile, academic, documents } = formState;
     const hasGap = academic.hasGap && academic.gapYears > 0;
-    const docList = buildDocList(academic.diplomaLevel, hasGap, academic.gapDocTypes, academic.gapOtherDocLabel, academic.studyLanguage);
+    const docList = buildDocList(
+      academic.diplomaLevel,
+      hasGap,
+      academic.gapDocTypes,
+      academic.gapOtherDocLabel,
+      academic.studyLanguage
+    );
     const filesToUpload = docList.filter((d) => documents[d.id]?.file);
-
     setTotalToUpload(filesToUpload.length);
 
     try {
-      // Fail fast on oversized files before creating the Airtable record.
+      // ── Pre-flight: reject oversized files immediately ─────────────────────
       for (const def of filesToUpload) {
         const file = documents[def.id]?.file;
         if (file && file.size > MAX_ATTACHMENT_BYTES) {
           throw new Error(
-            `"${def.name}" fait ${formatMb(file.size)} Mo. Airtable n'accepte que les fichiers jusqu'à 5 Mo — merci de le compresser et de réessayer.`
+            `Le fichier « ${def.name} » fait ${formatMb(file.size)} Mo. ` +
+            `La limite est de 5 Mo par fichier — compressez-le et réessayez.`
+          );
+        }
+        // Reject obviously-corrupt zero-byte files
+        if (file && file.size === 0) {
+          throw new Error(
+            `Le fichier « ${def.name} » est vide (0 octet). Sélectionnez un fichier valide.`
           );
         }
       }
 
-      const createRes = await fetch("/api/submit-admission", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          profile: {
-            firstName: profile.firstName,
-            lastName: profile.lastName,
-            email: profile.email,
-          },
-          academic: {
-            diplomaLevel: academic.diplomaLevel,
-            fieldOfStudy: academic.fieldOfStudy,
-            scoreFormat: FIXED_SCORE_FORMAT,
-            scoreValue: academic.scoreValue,
-            gapYears: academic.gapYears,
-            gapDocTypes: academic.gapDocTypes,
-          },
-          passportExpiry: documents.passport?.expiryDate || null,
-          languageCertName: documents.lang?.certName || "",
-          docsUploadedCount: filesToUpload.length,
-        }),
-      });
+      // ── Step 1: Create the Airtable record (or reuse existing) ───────────
+      let recordId: string;
+      let createJson: Record<string, unknown> = {};
 
-      const createJson = await createRes.json().catch(() => ({}));
-      if (!createRes.ok || !createJson.success || !createJson.recordId) {
-        throw new Error(
-          createJson.error ||
-            "Une erreur s'est produite. Réessayez ou contactez-nous sur WhatsApp."
+      if (existingRecordId) {
+        recordId = existingRecordId;
+      } else {
+        const createRes = await safeFetch(
+          "/api/submit-admission",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              profile: {
+                firstName: profile.firstName,
+                lastName:  profile.lastName,
+                email:     profile.email,
+              },
+              academic: {
+                diplomaLevel:  academic.diplomaLevel,
+                fieldOfStudy:  academic.fieldOfStudy,
+                scoreFormat:   FIXED_SCORE_FORMAT,
+                scoreValue:    academic.scoreValue,
+                gapYears:      academic.gapYears,
+                gapDocTypes:   academic.gapDocTypes,
+              },
+              passportExpiry:    documents.passport?.expiryDate || null,
+              languageCertName:  documents.lang?.certName || "",
+              docsUploadedCount: filesToUpload.length,
+            }),
+          },
+          "lors de la création de votre dossier",
+          30_000
         );
+
+        try {
+          createJson = await createRes.json();
+        } catch {
+          throw new Error(
+            "Le serveur a renvoyé une réponse invalide lors de la création du dossier. " +
+            "Réessayez dans quelques secondes."
+          );
+        }
+
+        if (!createRes.ok || !createJson.success || !createJson.recordId) {
+          const apiError = typeof createJson.error === "string" ? createJson.error : "";
+          throw new Error(
+            apiError ||
+            `Erreur serveur (code ${createRes.status}) lors de la création du dossier. ` +
+            `Réessayez ou contactez-nous sur WhatsApp.`
+          );
+        }
+
+        recordId = createJson.recordId as string;
       }
 
-      const recordId = createJson.recordId as string;
       let docsUploaded = 0;
 
+      // ── Step 2: Upload files one by one ───────────────────────────────────
       for (const def of filesToUpload) {
         const entry = documents[def.id];
         if (!entry?.file) continue;
 
-        // Stay under Airtable's 5 req/s base limit when uploading many files.
+        // Respect Airtable's 5 req/s rate limit
         if (docsUploaded > 0) await sleep(250);
 
         const fd = new FormData();
-        fd.append("recordId", recordId);
-        fd.append("docId", def.id);
+        fd.append("recordId",  recordId);
+        fd.append("docId",     def.id);
         fd.append("firstName", profile.firstName);
-        fd.append("lastName", profile.lastName);
-        fd.append("file", entry.file);
+        fd.append("lastName",  profile.lastName);
+        fd.append("file",      entry.file);
         if (entry.certName) fd.append("certName", entry.certName);
 
-        const uploadRes = await fetch("/api/submit-admission/upload", {
-          method: "POST",
-          body: fd,
-        });
-        const uploadJson = await uploadRes.json().catch(() => ({}));
+        // Allow up to 2 min per file (5 MB on a slow connection)
+        const uploadRes = await safeFetch(
+          "/api/submit-admission/upload",
+          { method: "POST", body: fd },
+          `lors de l'envoi de « ${def.name} »`,
+          120_000
+        );
+
+        let uploadJson: Record<string, unknown> = {};
+        try {
+          uploadJson = await uploadRes.json();
+        } catch {
+          throw new Error(
+            `Le serveur a renvoyé une réponse invalide lors de l'envoi de « ${def.name} ». ` +
+            `Réessayez ou contactez-nous sur WhatsApp.`
+          );
+        }
+
         if (!uploadRes.ok || !uploadJson.success) {
-          const detail =
-            typeof uploadJson.error === "string" ? uploadJson.error : "";
+          const detail = typeof uploadJson.error === "string" ? uploadJson.error : "";
           throw new Error(
             detail ||
-              `Échec lors de l'envoi de « ${def.name} » (${docsUploaded}/${filesToUpload.length} terminés). Réessayez ou contactez-nous sur WhatsApp.`
+            `Échec de l'envoi de « ${def.name} » ` +
+            `(${docsUploaded}/${filesToUpload.length} envoyés, code ${uploadRes.status}). ` +
+            `Réessayez ou contactez-nous sur WhatsApp.`
           );
         }
 
@@ -129,16 +259,19 @@ export function useSubmitDossier() {
       const result: SubmitResult = {
         success: true,
         recordId,
-        prospectFound: Boolean(createJson.prospectFound),
+        prospectFound:     Boolean(createJson.prospectFound),
         docsUploaded,
         totalDocsExpected: Number(createJson.totalDocsExpected) || docList.length,
       };
       return result;
+
     } catch (err) {
+      // At this point `err` is always an Error with a human-readable French message
+      // because safeFetch and our own throws guarantee it.
       const message =
         err instanceof Error
           ? err.message
-          : "Une erreur s'est produite. Réessayez ou contactez-nous sur WhatsApp.";
+          : "Une erreur inattendue s'est produite. Réessayez ou contactez-nous sur WhatsApp.";
       console.error("[submitDossier]", message);
       setError(message);
       return { success: false, error: message };
