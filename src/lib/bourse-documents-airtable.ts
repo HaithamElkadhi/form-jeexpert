@@ -1,6 +1,7 @@
 import "server-only";
 import { AIRTABLE, getAirtableApiKey } from "@/lib/airtable-config";
 import { airtableFetch } from "@/lib/airtable-fetch";
+import { findProspectByEmail } from "@/lib/airtable-prospects";
 export { findProspectByEmail, createMinimalProspect } from "@/lib/airtable-prospects";
 
 const { baseId } = AIRTABLE;
@@ -28,6 +29,94 @@ export const BOURSE_UPLOAD_FIELD_IDS: Record<BourseUploadFieldKey, string> = {
   taxDeclarations: F.taxDeclarations,
   otherDocuments: F.otherDocuments,
 };
+
+export interface ExistingBourseSubmission {
+  recordId: string;
+  submittedGroupKeys: string[];
+  uploadedFilesByField: Record<BourseUploadFieldKey, string[]>;
+  unmatchedAttachmentCount: number;
+}
+
+const UPLOAD_GROUP_PREFIX = "BourseField_";
+
+export function bourseAttachmentFilename(groupKey: string, originalName: string): string {
+  return `${UPLOAD_GROUP_PREFIX}${groupKey}--${originalName}`;
+}
+
+/** Find the latest bourse dossier linked to the student's prospect and its known upload groups. */
+export async function findExistingBourseSubmission(email: string): Promise<ExistingBourseSubmission | null> {
+  const prospectId = await findProspectByEmail(email);
+  if (!prospectId) return null;
+
+  const attachmentFields = Object.values(BOURSE_UPLOAD_FIELD_IDS);
+  let offset: string | undefined;
+  do {
+    const url = new URL(`https://api.airtable.com/v0/${baseId}/${table.id}`);
+    url.searchParams.set("pageSize", "100");
+    url.searchParams.set("returnFieldsByFieldId", "true");
+    url.searchParams.set("sort[0][field]", F.submissionDate);
+    url.searchParams.set("sort[0][direction]", "desc");
+    url.searchParams.append("fields[]", F.prospect);
+    url.searchParams.append("fields[]", F.submissionDate);
+    for (const fieldId of attachmentFields) url.searchParams.append("fields[]", fieldId);
+    if (offset) url.searchParams.set("offset", offset);
+
+    const res = await airtableFetch(url.toString(), {
+      headers: { Authorization: `Bearer ${getAirtableApiKey()}` },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Bourse-document lookup failed (${res.status}): ${text}`);
+    }
+
+    const json = await res.json();
+    const record = (json?.records ?? []).find((item: { fields?: Record<string, unknown> }) => {
+      const linkedProspects = item.fields?.[F.prospect];
+      return Array.isArray(linkedProspects) && linkedProspects.includes(prospectId);
+    });
+
+    if (record) {
+      const submittedGroupKeys = new Set<string>();
+      const uploadedFilesByField: Record<BourseUploadFieldKey, string[]> = {
+        birthCertificates: [],
+        familyBooklet: [],
+        propertyDocs: [],
+        nonPropertyDocs: [],
+        balanceAttestation: [],
+        taxDeclarations: [],
+        otherDocuments: [],
+      };
+      let unmatchedAttachmentCount = 0;
+      for (const [fieldKey, fieldId] of Object.entries(BOURSE_UPLOAD_FIELD_IDS) as [BourseUploadFieldKey, string][]) {
+        const attachments = record.fields?.[fieldId];
+        if (!Array.isArray(attachments)) continue;
+        for (const attachment of attachments as { filename?: string }[]) {
+          const filename = attachment.filename ?? "";
+          const match = filename.match(/^BourseField_([a-zA-Z0-9_]+)--/);
+          if (match) submittedGroupKeys.add(match[1]);
+          else unmatchedAttachmentCount += 1;
+          const legacyPrefix = `BourseField_${fieldKey}__`;
+          uploadedFilesByField[fieldKey].push(
+            filename.startsWith(legacyPrefix)
+              ? filename.slice(filename.indexOf("--") + 2)
+              : filename
+          );
+        }
+      }
+      return {
+        recordId: record.id as string,
+        submittedGroupKeys: [...submittedGroupKeys],
+        uploadedFilesByField,
+        unmatchedAttachmentCount,
+      };
+    }
+
+    offset = json?.offset as string | undefined;
+  } while (offset);
+
+  return null;
+}
 
 export interface CreateBourseDocumentsRecordInput {
   householdMembersText: string;

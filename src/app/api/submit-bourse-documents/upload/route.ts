@@ -3,6 +3,7 @@ import { airtableNetworkErrorMessage } from "@/lib/airtable-fetch";
 import {
   BOURSE_UPLOAD_FIELD_IDS,
   MAX_ATTACHMENT_BYTES,
+  bourseAttachmentFilename,
   uploadBourseAttachment,
   type BourseUploadFieldKey,
 } from "@/lib/bourse-documents-airtable";
@@ -17,12 +18,15 @@ export async function POST(req: NextRequest) {
 
   const recordId = String(formData.get("recordId") ?? "").trim();
   const fieldKey = String(formData.get("fieldKey") ?? "").trim() as BourseUploadFieldKey;
+  const groupKey = String(formData.get("groupKey") ?? "").trim();
   const file = formData.get("file");
 
   if (
     !recordId ||
     !fieldKey ||
     !(fieldKey in BOURSE_UPLOAD_FIELD_IDS) ||
+    !groupKey.startsWith(`${fieldKey}__`) ||
+    !/^[a-zA-Z0-9_]+$/.test(groupKey) ||
     !(file instanceof File) ||
     file.size === 0
   ) {
@@ -40,8 +44,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Spec: keep original filenames unchanged.
-  const filename = file.name;
+  const filename = bourseAttachmentFilename(groupKey, file.name);
 
   try {
     await uploadBourseAttachment(recordId, fieldKey, file, filename);

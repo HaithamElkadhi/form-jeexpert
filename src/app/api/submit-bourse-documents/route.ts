@@ -4,7 +4,20 @@ import {
   createBourseDocumentsRecord,
   createMinimalProspect,
   findProspectByEmail,
+  findExistingBourseSubmission,
 } from "@/lib/bourse-documents-airtable";
+
+export async function GET(req: NextRequest) {
+  const email = (req.nextUrl.searchParams.get("email") ?? "").trim();
+  if (!email) return NextResponse.json({ error: "E-mail obligatoire." }, { status: 400 });
+  try {
+    const existing = await findExistingBourseSubmission(email);
+    return NextResponse.json(existing ? { found: true, ...existing } : { found: false });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: airtableNetworkErrorMessage(err) }, { status: 502 });
+  }
+}
 
 export async function POST(req: NextRequest) {
   let body: {
@@ -12,6 +25,7 @@ export async function POST(req: NextRequest) {
     lastName?: string;
     email?: string;
     householdMembersText?: string;
+    existingRecordId?: string;
   };
 
   try {
@@ -33,21 +47,18 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    let prospectRecordId: string | null = null;
-    let prospectCreated = false;
-
-    // Link Prospect when possible, but don't block dossier creation on network blips.
-    try {
-      prospectRecordId = await findProspectByEmail(email);
-      if (!prospectRecordId) {
-        prospectRecordId = await createMinimalProspect({ firstName, lastName, email });
-        prospectCreated = true;
+    if (body.existingRecordId) {
+      const existing = await findExistingBourseSubmission(email);
+      if (!existing || existing.recordId !== body.existingRecordId) {
+        return NextResponse.json({ error: "Ce dossier ne correspond pas à cette adresse e-mail." }, { status: 409 });
       }
-    } catch (prospectErr) {
-      console.warn(
-        "[submit-bourse-documents] Prospect link skipped:",
-        airtableNetworkErrorMessage(prospectErr)
-      );
+      return NextResponse.json({ success: true, recordId: existing.recordId, prospectFound: true, prospectCreated: false, prospectLinked: true });
+    }
+
+    let prospectRecordId = await findProspectByEmail(email);
+    const prospectCreated = !prospectRecordId;
+    if (!prospectRecordId) {
+      prospectRecordId = await createMinimalProspect({ firstName, lastName, email });
     }
 
     const recordId = await createBourseDocumentsRecord({

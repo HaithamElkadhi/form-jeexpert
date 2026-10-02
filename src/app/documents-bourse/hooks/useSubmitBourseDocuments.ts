@@ -31,6 +31,7 @@ function formatMb(bytes: number): string {
 }
 
 type UploadJob = { fieldKey: UploadZoneKey; file: File };
+export type ExistingBourseTarget = { recordId: string };
 
 function collectJobs(files: DocumentsBourseFormData["files"]): UploadJob[] {
   const keys = Object.keys(files) as UploadZoneKey[];
@@ -50,7 +51,8 @@ export function useSubmitBourseDocuments() {
   const [error, setError] = useState<string | null>(null);
 
   async function submit(
-    data: DocumentsBourseFormData
+    data: DocumentsBourseFormData,
+    existingTarget?: ExistingBourseTarget
   ): Promise<SubmitSuccess | SubmitFailure> {
     setSubmitting(true);
     setError(null);
@@ -79,6 +81,7 @@ export function useSubmitBourseDocuments() {
             data.familyMembers,
             data.identity
           ),
+          existingRecordId: existingTarget?.recordId,
         }),
       });
 
@@ -99,6 +102,7 @@ export function useSubmitBourseDocuments() {
         const fd = new FormData();
         fd.append("recordId", recordId);
         fd.append("fieldKey", job.fieldKey);
+        fd.append("groupKey", `${job.fieldKey}__file`);
         fd.append("file", job.file);
 
         const uploadRes = await fetch("/api/submit-bourse-documents/upload", {

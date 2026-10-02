@@ -11,6 +11,7 @@ interface Props {
   label?: string;
   description?: string;
   files: File[];
+  alreadyUploadedFiles?: string[];
   onChange: (files: File[]) => void;
 }
 
@@ -26,7 +27,7 @@ function isAcceptedFile(file: File): boolean {
   return lower.endsWith(".pdf") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png");
 }
 
-export default function UploadZone({ label, description, files, onChange }: Props) {
+export default function UploadZone({ label, description, files, onChange, alreadyUploadedFiles = [] }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -123,6 +124,17 @@ export default function UploadZone({ label, description, files, onChange }: Prop
       />
 
       {localError && <p className="text-xs text-italy-terracotta-dark">{localError}</p>}
+
+      {alreadyUploadedFiles.length > 0 && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2.5">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-800">Déjà envoyés dans ce dossier</p>
+          <ul className="flex flex-col gap-1">
+            {alreadyUploadedFiles.map((name, index) => (
+              <li key={`${name}-${index}`} className="truncate text-sm text-emerald-900">{name}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {files.length > 0 && (
         <ul className="flex flex-col gap-2">
