@@ -11,6 +11,7 @@ import ProjectStep from "./components/ProjectStep";
 import CvStep from "./components/CvStep";
 import SuccessScreen from "./components/SuccessScreen";
 import { dialCodeFor } from "./phoneCountries";
+import JeexpertFormHeader from "../components/JeexpertFormHeader";
 
 const initialData: ItalyFormData = {
   // About you
@@ -111,8 +112,10 @@ export default function ItalyForm() {
   const showProgress = step > 0 && step < 5;
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-12">
-      <div className="w-full max-w-lg overflow-hidden rounded-xl border border-gray-200 bg-white">
+    <main className="min-h-screen bg-[#F4F7FB] px-4 py-5 [font-family:var(--font-poppins)] sm:px-6 sm:py-8">
+      <div className="mx-auto w-full max-w-4xl">
+        <JeexpertFormHeader />
+      <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-2xl border border-[#D9E2EC] bg-white shadow-sm">
         {showProgress && (
           <div className="px-8 pt-6">
             <ProgressBar percent={progressPercent} />
@@ -153,6 +156,7 @@ export default function ItalyForm() {
             {step === 5 && <SuccessScreen />}
           </FadeStep>
         </div>
+      </div>
       </div>
     </main>
   );

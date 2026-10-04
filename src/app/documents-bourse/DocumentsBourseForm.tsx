@@ -2,9 +2,11 @@
 
 import { useState, type FormEvent } from "react";
 import FamilyMembersSection from "./components/FamilyMembersSection";
+import JeexpertFormHeader from "../components/JeexpertFormHeader";
 import UploadZone from "./components/UploadZone";
 import {
   btnPrimaryClass,
+  btnSecondaryClass,
   errorClass,
   inputClass,
   labelClass,
@@ -136,11 +138,12 @@ export default function DocumentsBourseForm() {
 
   if (submitted) {
     return (
-      <main className="flex flex-1 justify-center px-4 py-10 sm:py-14">
-        <div className="w-full max-w-2xl">
-          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white p-8 sm:p-10">
+      <main className="min-h-screen bg-[#F4F7FB] px-4 py-5 [font-family:var(--font-poppins)] sm:px-6 sm:py-8">
+        <div className="mx-auto w-full max-w-7xl">
+          <JeexpertFormHeader />
+          <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-[#D9E2EC] bg-white p-8 shadow-sm sm:p-12">
             <div className="flex flex-col items-center gap-4 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-italy-green/15 text-italy-green">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#EFF8F2] text-[#217A50]">
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden>
                   <path
                     d="M7 17L13 23L25 9"
@@ -151,7 +154,7 @@ export default function DocumentsBourseForm() {
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-gray-900">Dossier envoyé</h2>
+              <h2 className="text-xl font-semibold text-[#173B65]">Dossier envoyé</h2>
               <p className="max-w-md text-gray-600">
                 Merci {submitted.firstName} {submitted.lastName}. Votre dossier de documents
                 bourse a bien été reçu
@@ -172,31 +175,33 @@ export default function DocumentsBourseForm() {
   }
 
   return (
-    <main className="flex flex-1 justify-center px-4 py-10 sm:py-14">
-      <div className="w-full max-w-2xl">
-        <header className="mb-8">
-          <p className="text-sm font-semibold tracking-wide text-italy-green">JEExpert</p>
-          <h1 className="mt-1 text-2xl font-semibold text-gray-900 sm:text-3xl">
-            Documents bourse
-          </h1>
-          <p className="mt-1 text-gray-500">
+    <main className="min-h-screen bg-[#F4F7FB] px-4 py-5 [font-family:var(--font-poppins)] sm:px-6 sm:py-8">
+      <div className="mx-auto w-full max-w-7xl">
+        <JeexpertFormHeader />
+
+        <div className="mx-auto w-full max-w-4xl">
+          <div className="min-w-0">
+        <header className="mb-5 px-1 sm:mb-6 sm:px-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#51708F]">Formulaire de dépôt</p>
+          <h1 className="mt-2 text-2xl font-semibold text-[#173B65] sm:text-3xl">Documents bourse</h1>
+          <p className="mt-2 text-sm leading-6 text-[#536579]">
             {step === 1 ? "Commencez par vos informations personnelles et familiales." : "Ajoutez les pièces justificatives pour votre dossier de bourse."}
           </p>
           <div className="mt-5 flex items-center gap-3" aria-label={`Étape ${step} sur 2`}>
-            <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${step === 1 ? "bg-italy-green text-white" : "bg-emerald-100 text-italy-green"}`}>1</span>
-            <span className={`text-sm ${step === 1 ? "font-semibold text-gray-900" : "text-gray-500"}`}>Informations</span>
-            <span className="h-px flex-1 bg-gray-200" />
-            <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${step === 2 ? "bg-italy-green text-white" : "bg-gray-100 text-gray-500"}`}>2</span>
-            <span className={`text-sm ${step === 2 ? "font-semibold text-gray-900" : "text-gray-500"}`}>Documents</span>
+            <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold ${step === 1 ? "bg-[#173B65] text-white" : "bg-[#E3F3FC] text-[#173B65]"}`}>1</span>
+            <span className={`text-sm ${step === 1 ? "font-semibold text-[#173B65]" : "text-[#687B8E]"}`}>Informations</span>
+            <span className="h-px flex-1 bg-[#D9E2EC]" />
+            <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold ${step === 2 ? "bg-[#173B65] text-white" : "bg-white text-[#687B8E] ring-1 ring-[#D9E2EC]"}`}>2</span>
+            <span className={`text-sm ${step === 2 ? "font-semibold text-[#173B65]" : "text-[#687B8E]"}`}>Documents</span>
           </div>
         </header>
 
         <form
           onSubmit={handleSubmit}
-          className="overflow-hidden rounded-xl border border-gray-200 bg-white"
+          className="overflow-hidden rounded-2xl border border-[#D9E2EC] bg-white shadow-sm"
           noValidate
         >
-          <div className="flex flex-col gap-10 p-6 sm:p-8">
+          <div className="flex flex-col gap-8 p-5 sm:gap-9 sm:p-8 lg:p-9">
             {step === 1 && <>
             {/* 1. Identity */}
             <section id="section-identity" className="flex flex-col gap-5">
@@ -250,24 +255,24 @@ export default function DocumentsBourseForm() {
                   {identityErrors.email && <p className={errorClass}>{identityErrors.email}</p>}
                   {checkingDossier && <p className="text-xs text-gray-500">Vérification du dossier existant…</p>}
                   {lookupDone && !existingDossier && data.identity.email.trim() && !checkingDossier && (
-                    <p className="text-xs text-emerald-700">Aucun dossier bourse existant trouvé pour cet e-mail.</p>
+                    <p className="text-xs text-[#217A50]">Aucun dossier bourse existant trouvé pour cet e-mail.</p>
                   )}
                 </div>
               </div>
             </section>
 
             {existingDossier && (
-              <section className="rounded-xl border border-amber-200 bg-amber-50 p-4 sm:p-5" aria-live="polite">
-                <h2 className="text-base font-semibold text-gray-900">Dossier bourse existant trouvé</h2>
+              <section className="rounded-xl border border-[#B7D8EC] bg-[#F0F8FC] p-4 sm:p-5" aria-live="polite">
+                <h2 className="text-base font-semibold text-[#173B65]">Dossier bourse existant trouvé</h2>
                 <p className="mt-1 text-sm text-gray-600">Les pièces déjà reçues sont indiquées dans chaque rubrique ci-dessous. Vérifiez-les avant de choisir où envoyer vos nouveaux documents.</p>
                 {existingDossier.unmatchedAttachmentCount > 0 && (
                   <p className="mt-2 text-xs text-gray-600">{existingDossier.unmatchedAttachmentCount} fichier(s) existant(s) ont un nom qui ne permet pas de les classer automatiquement.</p>
                 )}
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  <button type="button" aria-pressed={dossierChoice === "existing"} className={`${dossierChoice === "existing" ? "ring-2 ring-italy-green" : ""} rounded-lg border border-emerald-300 bg-white px-4 py-3 text-left text-sm font-medium text-gray-800`} onClick={() => setDossierChoice("existing")}>
+                  <button type="button" aria-pressed={dossierChoice === "existing"} className={`${dossierChoice === "existing" ? "border-[#173B65] ring-2 ring-[#80C4EA]" : "border-[#D9E2EC]"} rounded-lg border bg-white px-4 py-3 text-left text-sm font-medium text-[#173B65] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#80C4EA]`} onClick={() => setDossierChoice("existing")}>
                     Ajouter les nouveaux documents au dossier existant
                   </button>
-                  <button type="button" aria-pressed={dossierChoice === "new"} className={`${dossierChoice === "new" ? "ring-2 ring-italy-green" : ""} rounded-lg border border-gray-300 bg-white px-4 py-3 text-left text-sm font-medium text-gray-800`} onClick={() => setDossierChoice("new")}>
+                  <button type="button" aria-pressed={dossierChoice === "new"} className={`${dossierChoice === "new" ? "border-[#173B65] ring-2 ring-[#80C4EA]" : "border-[#D9E2EC]"} rounded-lg border bg-white px-4 py-3 text-left text-sm font-medium text-[#173B65] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#80C4EA]`} onClick={() => setDossierChoice("new")}>
                     Créer un nouveau dossier séparé
                   </button>
                 </div>
@@ -371,7 +376,7 @@ export default function DocumentsBourseForm() {
             </>}
 
             {error && (
-              <div className="rounded-lg border border-italy-terracotta/30 bg-italy-terracotta/5 px-4 py-3 text-sm text-italy-terracotta-dark">
+              <div className="rounded-lg border border-[#E9B7B7] bg-[#FFF5F5] px-4 py-3 text-sm text-[#B83232]" role="alert">
                 {error}
               </div>
             )}
@@ -392,7 +397,7 @@ export default function DocumentsBourseForm() {
                 <p className="text-sm text-gray-500">Création du dossier…</p>
               )}
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-              <button type="button" className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" onClick={() => { setStep(1); setError(null); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+              <button type="button" className={btnSecondaryClass} onClick={() => { setStep(1); setError(null); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
                 Retour aux informations
               </button>
               <button type="submit" className={btnPrimaryClass} disabled={submitting || checkingDossier}>
@@ -407,6 +412,8 @@ export default function DocumentsBourseForm() {
             </div>}
           </div>
         </form>
+        </div>
+        </div>
       </div>
     </main>
   );

@@ -16,6 +16,7 @@ import StepStudentIncome from "@/app/bourse/components/StepStudentIncome";
 import StepProperty from "@/app/bourse/components/StepProperty";
 import StepBank from "@/app/bourse/components/StepBank";
 import StepDocumentsUpload from "./components/StepDocumentsUpload";
+import JeexpertFormHeader from "../components/JeexpertFormHeader";
 
 /**
  * Passeport, codice fiscale et lettre d'admission sont déjà collectés via le
@@ -118,9 +119,11 @@ export default function BourseDocumentsForm() {
   const showProgress = step !== "welcome" && step !== "documents";
 
   return (
-    <main className="flex flex-1 items-start justify-center px-4 py-12">
+    <main className="min-h-screen bg-[#F4F7FB] px-4 py-5 [font-family:var(--font-poppins)] sm:px-6 sm:py-8">
+      <div className="mx-auto w-full max-w-4xl">
+        <JeexpertFormHeader />
       <div
-        className={`w-full overflow-hidden rounded-xl border border-gray-200 bg-white ${
+        className={`mx-auto w-full overflow-hidden rounded-2xl border border-[#D9E2EC] bg-white shadow-sm ${
           step === "documents" ? "max-w-2xl" : "max-w-lg"
         }`}
       >
@@ -211,6 +214,7 @@ export default function BourseDocumentsForm() {
             )}
           </FadeStep>
         </div>
+      </div>
       </div>
     </main>
   );

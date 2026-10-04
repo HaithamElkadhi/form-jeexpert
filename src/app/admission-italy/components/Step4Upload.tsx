@@ -99,7 +99,7 @@ export default function Step4Upload({
   if (checkState.status === "checking") {
     return (
       <div className="flex flex-col items-center gap-4 py-10">
-        <svg className="h-8 w-8 animate-spin text-[#246BCE]" viewBox="0 0 24 24" fill="none" aria-label="Vérification en cours">
+        <svg className="h-8 w-8 animate-spin text-[#173B65]" viewBox="0 0 24 24" fill="none" aria-label="Vérification en cours">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4l-3 3 3 3v-4a8 8 0 01-8-8z" />
         </svg>
@@ -123,13 +123,13 @@ export default function Step4Upload({
         <h2 className={sectionTitleClass}>Dossier existant</h2>
 
         {/* Existing submission banner */}
-        <div className="rounded-xl border border-[#246BCE]/20 bg-[#246BCE]/5 p-5">
+        <div className="rounded-xl border border-[#173B65]/20 bg-[#173B65]/5 p-5">
           <div className="flex items-start gap-3">
-            <svg className="mt-0.5 shrink-0 text-[#246BCE]" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <svg className="mt-0.5 shrink-0 text-[#173B65]" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
             <div className="flex-1">
-              <p className="font-semibold text-[#0D3272]">
+              <p className="font-semibold text-[#173B65]">
                 Un dossier existe déjà pour{" "}
                 <span className="font-bold">{data.profile.email}</span>
               </p>
@@ -142,7 +142,7 @@ export default function Step4Upload({
                     {submittedNames.map((name) => (
                       <span
                         key={name}
-                        className="flex items-center gap-1 rounded-full bg-[#18A999]/10 px-2.5 py-0.5 text-xs font-medium text-[#18A999]"
+                        className="flex items-center gap-1 rounded-full bg-[#217A50]/10 px-2.5 py-0.5 text-xs font-medium text-[#217A50]"
                       >
                         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
                           <path d="M2 5.5l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -164,14 +164,14 @@ export default function Step4Upload({
           <button
             type="button"
             onClick={() => setCheckState({ status: "add", existing })}
-            className="flex flex-col gap-2 rounded-xl border-2 border-[#246BCE] bg-white p-5 text-left transition-colors hover:bg-[#246BCE]/5"
+            className="flex flex-col gap-2 rounded-xl border-2 border-[#173B65] bg-white p-5 text-left transition-colors hover:bg-[#173B65]/5"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#246BCE]/10">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#173B65]/10">
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
-                <path d="M10 4v12M4 10h12" stroke="#246BCE" strokeWidth="2" strokeLinecap="round" />
+                <path d="M10 4v12M4 10h12" stroke="#173B65" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </div>
-            <p className="font-semibold text-[#0D3272]">Compléter mon dossier</p>
+            <p className="font-semibold text-[#173B65]">Compléter mon dossier</p>
             <p className="text-xs text-gray-500">
               {missingCount > 0
                 ? `Ajouter les ${missingCount} document${missingCount > 1 ? "s" : ""} manquant${missingCount > 1 ? "s" : ""}`
@@ -232,7 +232,7 @@ export default function Step4Upload({
       </div>
 
       {isAddMode ? (
-        <p className="text-sm text-[#246BCE] font-medium bg-[#246BCE]/5 rounded-lg px-3 py-2 border border-[#246BCE]/20">
+        <p className="text-sm text-[#173B65] font-medium bg-[#173B65]/5 rounded-lg px-3 py-2 border border-[#173B65]/20">
           Les documents déjà envoyés sont grisés. Téléversez uniquement les documents manquants.
         </p>
       ) : (

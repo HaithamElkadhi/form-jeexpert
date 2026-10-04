@@ -18,7 +18,7 @@ const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 function DocIcon({ uploaded }: { uploaded: boolean }) {
   if (uploaded) {
     return (
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#18A999]/15 text-[#18A999]">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#217A50]/15 text-[#217A50]">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
           <path
             d="M4 10.5L8 14.5L16 5.5"
@@ -55,14 +55,14 @@ export default function DocItem({ def, entry, onChange, alreadySubmitted }: Prop
   if (alreadySubmitted) {
     return (
       <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 opacity-60">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#18A999]/15 text-[#18A999]">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#217A50]/15 text-[#217A50]">
           <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
             <path d="M4 10.5L8 14.5L16 5.5" stroke="currentColor" strokeWidth="2.2"
               strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
         <p className="flex-1 text-sm font-medium text-gray-500">{def.name}</p>
-        <span className="rounded-full bg-[#18A999]/10 px-2.5 py-0.5 text-xs font-semibold text-[#18A999]">
+        <span className="rounded-full bg-[#217A50]/10 px-2.5 py-0.5 text-xs font-semibold text-[#217A50]">
           Déjà envoyé
         </span>
       </div>
@@ -75,7 +75,7 @@ export default function DocItem({ def, entry, onChange, alreadySubmitted }: Prop
         tooLarge
           ? "border-red-200 bg-red-50"
           : uploaded
-            ? "border-[#18A999]/40 bg-[#18A999]/5"
+            ? "border-[#217A50]/40 bg-[#217A50]/5"
             : "border-gray-200 bg-white"
       }`}
     >
@@ -96,7 +96,7 @@ export default function DocItem({ def, entry, onChange, alreadySubmitted }: Prop
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#18A999] text-white"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#217A50] text-white"
             aria-label={`${def.name} téléversé — remplacer`}
             title="Remplacer le fichier"
           >

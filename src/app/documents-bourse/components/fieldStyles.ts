@@ -1,21 +1,21 @@
 export const inputClass =
-  "w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none transition-colors focus:border-italy-green focus:ring-1 focus:ring-italy-green";
+  "h-11 w-full rounded-lg border border-[#D9E2EC] bg-white px-3 text-[#172D43] outline-none transition-colors placeholder:text-gray-400 focus:border-[#173B65] focus:ring-2 focus:ring-[#80C4EA]/40";
 
-export const labelClass = "text-sm font-medium text-gray-700";
+export const labelClass = "text-sm font-medium text-[#172D43]";
 
 export const hintClass = "text-xs text-gray-500";
 
-export const errorClass = "text-xs text-italy-terracotta-dark";
+export const errorClass = "text-xs text-[#B83232]";
 
-export const sectionTitleClass = "text-xl font-semibold text-gray-900";
+export const sectionTitleClass = "text-lg font-semibold text-[#173B65] sm:text-xl";
 
-export const cardClass = "rounded-xl border border-gray-200 bg-gray-50 p-4";
+export const cardClass = "rounded-xl border border-[#D9E2EC] bg-[#F4F7FB] p-4";
 
 export const btnPrimaryClass =
-  "rounded-lg bg-italy-green px-6 py-3 font-medium text-white transition-colors hover:bg-italy-green-dark disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex min-h-11 items-center justify-center rounded-lg bg-[#173B65] px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-[#102E50] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#80C4EA] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60";
 
 export const btnSecondaryClass =
-  "rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100";
+  "inline-flex min-h-11 items-center justify-center rounded-lg border border-[#D9E2EC] bg-white px-4 py-2 text-sm font-medium text-[#173B65] transition-colors hover:bg-[#F4F7FB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#80C4EA] focus-visible:ring-offset-2";
 
 export const btnDangerClass =
-  "rounded-lg border border-italy-terracotta/30 px-3 py-1.5 text-sm font-medium text-italy-terracotta-dark transition-colors hover:bg-italy-terracotta/5";
+  "min-h-11 rounded-lg border border-[#E9B7B7] px-3 py-1.5 text-sm font-medium text-[#B83232] transition-colors hover:bg-[#FFF5F5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#80C4EA] focus-visible:ring-offset-2";

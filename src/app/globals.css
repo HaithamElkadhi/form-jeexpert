@@ -12,15 +12,15 @@
   --font-display: var(--font-poppins);
 
   /* JEExpert brand tokens */
-  --color-jee-navy:  #0D3272;
-  --color-jee-blue:  #246BCE;
-  --color-jee-teal:  #18A999;
-  --color-jee-gold:  #F5A623;
+  --color-jee-navy:  #173B65;
+  --color-jee-blue:  #80C4EA;
+  --color-jee-teal:  #217A50;
+  --color-jee-gold:  #966000;
   --color-jee-soft:  #F4F7FB;
 
   /* Legacy aliases — kept so existing components using italy-* still compile */
-  --color-italy-green:           #246BCE;
-  --color-italy-green-dark:      #0D3272;
+  --color-italy-green:           #173B65;
+  --color-italy-green-dark:      #102E50;
   --color-italy-terracotta:      #C0392B;
   --color-italy-terracotta-dark: #9B2C2C;
 }

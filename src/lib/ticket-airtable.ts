@@ -1,5 +1,6 @@
 import "server-only";
 import { AIRTABLE, getAirtableApiKey } from "@/lib/airtable-config";
+import { airtableFetch } from "@/lib/airtable-fetch";
 import { findProspectByEmail } from "@/lib/airtable-prospects";
 
 const { baseId } = AIRTABLE;
@@ -10,7 +11,7 @@ export interface CreateTicketInput {
   fullName: string;
   email: string;
   phone: string;
-  category: string;
+  subject: string;
   description: string;
 }
 
@@ -19,6 +20,8 @@ export interface CreateTicketResult {
   ticketRef: string | null;
   linkedProspect: boolean;
 }
+
+export const MAX_TICKET_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 
 /** Live Task Type choices from Airtable schema (not hardcoded). */
 export async function getTicketCategories(): Promise<string[]> {
@@ -73,7 +76,8 @@ export async function createSupportTicket(
     [F.prospectName]: input.fullName,
     [F.clientEmail]: input.email,
     [F.clientPhone]: input.phone,
-    [F.taskType]: input.category,
+    [F.ticketType]: "Ticket",
+    [F.taskObject]: input.subject,
     [F.description]: input.description,
     [F.taskStatus]: "Todo",
   };
@@ -82,7 +86,7 @@ export async function createSupportTicket(
     fields[F.linkedProspect] = [prospectRecordId];
   }
 
-  const res = await fetch(`https://api.airtable.com/v0/${baseId}/${tasks.id}`, {
+  const res = await airtableFetch(`https://api.airtable.com/v0/${baseId}/${tasks.id}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${getAirtableApiKey()}`,
@@ -118,6 +122,37 @@ export async function createSupportTicket(
     ticketRef,
     linkedProspect: Boolean(prospectRecordId),
   };
+}
+
+/** Upload one file to the Tasks table's Attachment field without replacing existing files. */
+export async function uploadTicketAttachment(recordId: string, file: File): Promise<void> {
+  if (file.size > MAX_TICKET_ATTACHMENT_BYTES) {
+    throw new Error(`"${file.name}" exceeds the 5 MB attachment limit.`);
+  }
+
+  const arrayBuffer = await file.arrayBuffer();
+  const base64File = Buffer.from(arrayBuffer).toString("base64");
+  const fieldId = F.attachment;
+  const res = await airtableFetch(
+    `https://content.airtable.com/v0/${baseId}/${recordId}/${fieldId}/uploadAttachment`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${getAirtableApiKey()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contentType: file.type || "application/octet-stream",
+        filename: file.name,
+        file: base64File,
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Airtable attachment upload failed (${res.status}): ${text}`);
+  }
 }
 
 function readTicketRef(fields: Record<string, unknown> | undefined): string | null {

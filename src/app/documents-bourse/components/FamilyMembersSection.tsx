@@ -47,7 +47,7 @@ export default function FamilyMembersSection({ members, onChange, onAdd }: Props
         {members.map((member, index) => (
           <div key={member.id} className={`${cardClass} flex flex-col gap-4`}>
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-gray-800">Membre {index + 1}</p>
+              <p className="text-sm font-semibold text-[#173B65]">Membre {index + 1}</p>
               <button
                 type="button"
                 className={btnDangerClass}

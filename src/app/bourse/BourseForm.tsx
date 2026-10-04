@@ -16,6 +16,7 @@ import StepStudentIncome from "./components/StepStudentIncome";
 import StepProperty from "./components/StepProperty";
 import StepBank from "./components/StepBank";
 import ResultStep from "./components/ResultStep";
+import JeexpertFormHeader from "../components/JeexpertFormHeader";
 
 const STEP_ORDER = [
   "welcome",
@@ -100,9 +101,11 @@ export default function BourseForm() {
   const showProgress = step !== "welcome" && step !== "result";
 
   return (
-    <main className="flex flex-1 items-start justify-center px-4 py-12">
+    <main className="min-h-screen bg-[#F4F7FB] px-4 py-5 [font-family:var(--font-poppins)] sm:px-6 sm:py-8">
+      <div className="mx-auto w-full max-w-4xl">
+        <JeexpertFormHeader />
       <div
-        className={`w-full overflow-hidden rounded-xl border border-gray-200 bg-white ${
+        className={`mx-auto w-full overflow-hidden rounded-2xl border border-[#D9E2EC] bg-white shadow-sm ${
           step === "result" ? "max-w-2xl" : "max-w-lg"
         }`}
       >
@@ -191,6 +194,7 @@ export default function BourseForm() {
             )}
           </FadeStep>
         </div>
+      </div>
       </div>
     </main>
   );

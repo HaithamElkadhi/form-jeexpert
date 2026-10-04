@@ -16,6 +16,7 @@ import Step2Academic from "./components/Step2Academic";
 import Step3Documents from "./components/Step3Documents";
 import Step4Upload from "./components/Step4Upload";
 import SuccessScreen from "./components/SuccessScreen";
+import JeexpertFormHeader from "../components/JeexpertFormHeader";
 
 export default function AdmissionForm() {
   const [step, setStep] = useState<AdmissionStep>(1);
@@ -56,25 +57,11 @@ export default function AdmissionForm() {
   }
 
   return (
-    <main className="flex flex-1 justify-center px-4 py-10 sm:py-14">
-      <div className="w-full max-w-2xl">
-        {/* Header */}
-        <header className="mb-6 flex items-center justify-between border-b border-gray-200 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0D3272]">
-              <span className="text-sm font-black text-[#F5A623]">J</span>
-            </div>
-            <div>
-              <span className="text-base font-bold text-[#0D3272]">Jee</span><span className="text-base font-bold text-[#F5A623]">expert</span>
-            </div>
-          </div>
-          <div className="text-right">
-            <h1 className="text-base font-semibold text-gray-900">Dossier d&apos;admission — Italie</h1>
-            <p className="text-xs text-gray-400">Votre avenir, notre expertise</p>
-          </div>
-        </header>
+    <main className="min-h-screen bg-[#F4F7FB] px-4 py-5 [font-family:var(--font-poppins)] sm:px-6 sm:py-8">
+      <div className="mx-auto w-full max-w-4xl">
+        <JeexpertFormHeader />
 
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-2xl border border-[#D9E2EC] bg-white shadow-sm">
           {step !== "success" && (
             <div className="border-b border-gray-100 px-6 pt-6 pb-4 sm:px-8">
               <StepBar current={step} />

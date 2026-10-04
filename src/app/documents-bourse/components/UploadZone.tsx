@@ -90,13 +90,13 @@ export default function UploadZone({ label, description, files, onChange, alread
           setDragging(false);
           if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files);
         }}
-        className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors ${
+        className={`flex min-h-36 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#80C4EA] focus-visible:ring-offset-2 ${
           dragging
-            ? "border-italy-green bg-italy-green/5"
-            : "border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50"
+            ? "border-[#173B65] bg-[#80C4EA]/10"
+            : "border-[#B8C7D8] bg-[#F8FAFC] hover:border-[#173B65] hover:bg-[#F4F7FB]"
         }`}
       >
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-gray-400" aria-hidden>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-[#173B65]" aria-hidden>
           <path
             d="M12 16V4M12 4l-4 4M12 4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"
             stroke="currentColor"
@@ -126,11 +126,11 @@ export default function UploadZone({ label, description, files, onChange, alread
       {localError && <p className="text-xs text-italy-terracotta-dark">{localError}</p>}
 
       {alreadyUploadedFiles.length > 0 && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2.5">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-800">Déjà envoyés dans ce dossier</p>
+        <div className="rounded-lg border border-[#B6DCC8] bg-[#EFF8F2] px-3 py-2.5">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#217A50]">Déjà envoyés dans ce dossier</p>
           <ul className="flex flex-col gap-1">
             {alreadyUploadedFiles.map((name, index) => (
-              <li key={`${name}-${index}`} className="truncate text-sm text-emerald-900">{name}</li>
+              <li key={`${name}-${index}`} className="truncate text-sm text-[#172D43]">{name}</li>
             ))}
           </ul>
         </div>

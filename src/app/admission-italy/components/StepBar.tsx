@@ -19,9 +19,9 @@ export default function StepBar({ current }: { current: 1 | 2 | 3 | 4 }) {
               <div
                 className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-colors ${
                   done
-                    ? "bg-[#18A999] text-white"
+                    ? "bg-[#217A50] text-white"
                     : active
-                      ? "bg-[#0D3272] text-white"
+                      ? "bg-[#173B65] text-white"
                       : "bg-gray-200 text-gray-400"
                 }`}
               >
@@ -33,7 +33,7 @@ export default function StepBar({ current }: { current: 1 | 2 | 3 | 4 }) {
                 ) : s.n}
               </div>
               <span className={`text-xs font-medium ${
-                active ? "text-[#0D3272]" : done ? "text-[#18A999]" : "text-gray-400"
+                active ? "text-[#173B65]" : done ? "text-[#217A50]" : "text-gray-400"
               }`}>
                 {s.label}
               </span>
@@ -41,7 +41,7 @@ export default function StepBar({ current }: { current: 1 | 2 | 3 | 4 }) {
             {i < STEPS.length - 1 && (
               <div
                 className={`mb-5 h-0.5 flex-1 rounded-full transition-colors ${
-                  done ? "bg-[#18A999]" : "bg-gray-200"
+                  done ? "bg-[#217A50]" : "bg-gray-200"
                 }`}
                 aria-hidden
               />
