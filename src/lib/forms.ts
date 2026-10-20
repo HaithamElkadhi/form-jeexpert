@@ -10,4 +10,5 @@ export const FORMS: FormListing[] = [
   { name: "Checklist bourse régionale — Italie", slug: "bourse" },
   { name: "Documents bourse", slug: "documents-bourse" },
   { name: "Ticket support", slug: "ticket" },
+  { name: "Candidature Jeexpert", slug: "candidature" },
 ];

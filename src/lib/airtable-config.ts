@@ -126,6 +126,36 @@ export const AIRTABLE = {
   },
 } as const;
 
+/** Recruitment form lives in its own Airtable base to keep candidate data separate. */
+export const AIRTABLE_CANDIDATURES = {
+  baseId: "appVHjUwJBU3wGrOW",
+  tableId: "tblnud4TgpDXiuAQx",
+  fields: {
+    fullName: "fldeREj0cZbORnrlm",
+    lastName: "fld7zmomLskfnP7Dp",
+    firstName: "fldHC7iokvAWLTMKZ",
+    birthDate: "fldVdjyJZFPW4zztJ",
+    age: "fldsRr7FH96M8771n",
+    whatsapp: "fldIcd2XaIeqCn9t1",
+    governorate: "fldV7AQnWCcXZQzlT",
+    cityAddress: "fldY8rDaZkDaCX6N4",
+    contractTypes: "fldqHDKFbJP6Vjusl",
+    workMode: "fldyTd8LEB6kTKvEb",
+    availableFrom: "fldQj6v0wp98K63dj",
+    expectedSalary: "fldtA54nODavPRrCo",
+    lastDiploma: "fldC6evht9lnYjz7r",
+    arabic: "fldUrI492SSfVFBNw",
+    french: "fldLPu9NyTi9fvGNg",
+    english: "fldU5dIAOMh09jRsp",
+    italian: "fldhwTqU8eQlDhE1x",
+    experience: "fldVpWjOlEsF99jB7",
+    cv: "fldD6pebciD07t0BE",
+    italyInterest: "fld2R4ENoHpCKVtDz",
+    dataConsent: "fldbUqtj3POhHCTuD",
+    status: "fld748Qqm9HxZP4wF",
+  },
+} as const;
+
 export type AirtableTableKey = keyof typeof AIRTABLE.tables;
 
 export function getAirtableApiKey(): string {
