@@ -174,7 +174,7 @@ export default function CandidatureForm() {
                 </fieldset>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                   <Field label="Disponible à partir du" htmlFor="availableFrom" required><input id="availableFrom" className={inputClass} name="availableFrom" type="date" required /></Field>
-                  <Field label="Salaire mensuel attendu (DT)" htmlFor="expectedSalary" required><input id="expectedSalary" className={inputClass} name="expectedSalary" type="number" min="0" step="1" placeholder="Ex. 1200" required /></Field>
+                  <Field label="Salaire mensuel attendu (DT)" htmlFor="expectedSalary" required><input id="expectedSalary" className={inputClass} name="expectedSalary" type="number" min="0" step="1" placeholder="Saisir le montant souhaité" required /></Field>
                 </div>
               </SectionCard>
 
